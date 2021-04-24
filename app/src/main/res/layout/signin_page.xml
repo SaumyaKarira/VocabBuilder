@@ -2,7 +2,9 @@
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:scrollbarSize="0dp"
+    android:scrollbarThumbVertical="@android:color/transparent">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -15,7 +17,6 @@
             android:text="@string/app_name"
             android:textSize="50sp"
             android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-            android:textStyle="italic"
             android:textAlignment="center"
             android:paddingVertical="@dimen/activity_vertical_margin"
             android:paddingTop="16dp"
@@ -60,7 +61,8 @@
             android:layout_centerHorizontal="true"
             android:layout_marginTop="330dp"
             android:drawableStart="@drawable/ic_baseline_person_24"
-            android:drawablePadding="10dp"/>
+            android:drawablePadding="10dp"
+            android:maxLines="1"/>
 
         <EditText
             android:id="@+id/last_name"
@@ -71,7 +73,8 @@
             android:layout_centerHorizontal="true"
             android:layout_marginTop="400dp"
             android:drawableStart="@drawable/ic_baseline_person_24"
-            android:drawablePadding="10dp"/>
+            android:drawablePadding="10dp"
+            android:maxLines="1"/>
 
 
         <EditText
@@ -82,7 +85,8 @@
             android:hint="@string/email_address"
             android:layout_centerHorizontal="true"
             android:drawableStart="@drawable/ic_outline_email_24"
-            android:drawablePadding="10dp"/>
+            android:drawablePadding="10dp"
+            android:maxLines="1"/>
 
         <EditText
             android:id="@+id/signin_password"
@@ -90,9 +94,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="540dp"
             android:hint="@string/password"
+            android:inputType="textPassword"
             android:layout_centerHorizontal="true"
             android:drawableStart="@drawable/ic_outline_lock_24"
-            android:drawablePadding="10dp"/>
+            android:drawablePadding="10dp"
+            android:maxLines="1"/>
 
         <EditText
             android:id="@+id/confirm_password"
@@ -101,8 +107,10 @@
             android:layout_marginTop="610dp"
             android:hint="@string/confirm_password"
             android:layout_centerHorizontal="true"
+            android:inputType="textPassword"
             android:drawableStart="@drawable/ic_outline_lock_24"
-            android:drawablePadding="10dp"/>
+            android:drawablePadding="10dp"
+            android:maxLines="1"/>
 
         <Button
             android:id="@+id/signup_btn"

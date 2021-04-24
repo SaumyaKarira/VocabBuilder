@@ -23,8 +23,10 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.GoogleAuthProvider;
 
 public class SigninActivity extends AppCompatActivity {
 
@@ -48,6 +50,8 @@ public class SigninActivity extends AppCompatActivity {
         email = findViewById(R.id.signin_email_address);
         password = findViewById(R.id.signin_password);
         confirmPassowrd = findViewById(R.id.confirm_password);
+        signup = findViewById(R.id.signup_btn);
+        signin = findViewById(R.id.signin);
 
         fAuth = FirebaseAuth.getInstance();
         progressBar = findViewById(R.id.signin_progress_bar);
@@ -60,7 +64,7 @@ public class SigninActivity extends AppCompatActivity {
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String Email = email.getText().toString();
+                String Email = email.getText().toString().trim();
                 String Password = password.getText().toString();
                 String FirstName = firstName.getText().toString();
                 String LastName = lastName.getText().toString();
@@ -91,21 +95,32 @@ public class SigninActivity extends AppCompatActivity {
                         if (task.isSuccessful()){
                             Toast.makeText(SigninActivity.this, "User Successfully Created", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                            finish();
                         }else {
                             Toast.makeText(SigninActivity.this, "Error!!" + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            progressBar.setVisibility(View.GONE);
                         }
                     }
                 });
             }
         });
 
+        signin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getApplicationContext(), LoginActivity.class));
+                finish();
+            }
+        });
+
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken("339124003537-280m9ol664odbbloqa3k7p77404rf9eq.apps.googleusercontent.com")
                 .requestEmail()
                 .build();
         // Build a GoogleSignInClient with the options specified by gso.
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        mGoogleSignInClient = GoogleSignIn.getClient(SigninActivity.this, gso);
         // Check for existing Google Sign In account, if the user is already signed in
         // the GoogleSignInAccount will be non-null.
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
@@ -143,6 +158,21 @@ public class SigninActivity extends AppCompatActivity {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
 
+            if (account != null) {
+                // account is null, initialize auth credentials
+                AuthCredential authCredential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+                fAuth.signInWithCredential(authCredential).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()){
+                            startActivity(new Intent(SigninActivity.this, MainActivity.class));
+                            finish();
+                        }
+
+                    }
+                });
+            }
+
             GoogleSignInAccount acct = GoogleSignIn.getLastSignedInAccount(this);
             if (acct != null) {
                 String personName = acct.getDisplayName();
@@ -152,7 +182,7 @@ public class SigninActivity extends AppCompatActivity {
                 String personId = acct.getId();
                 Uri personPhoto = acct.getPhotoUrl();
             }
-            startActivity(new Intent(SigninActivity.this, MainActivity.class));
+
             // Signed in successfully, show authenticated UI.
         } catch (ApiException e) {
             // The ApiException status code indicates the detailed failure reason.
