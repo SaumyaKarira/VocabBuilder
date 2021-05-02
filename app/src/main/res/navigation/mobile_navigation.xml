@@ -3,23 +3,44 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/nav_home">
+    app:startDestination="@+id/nav_dictionary">
 
     <fragment
-        android:id="@+id/nav_home"
-        android:name="com.example.vocabbuilder.ui.home.HomeFragment"
-        android:label="@string/menu_home"
-        tools:layout="@layout/fragment_home" />
+        android:id="@+id/nav_dictionary"
+        android:label="@string/menu_dictionary"
+        android:name="com.example.vocabbuilder.DictionaryFragment"
+        tools:layout="@layout/fragment_dictionary" />
 
     <fragment
-        android:id="@+id/nav_gallery"
-        android:name="com.example.vocabbuilder.ui.gallery.GalleryFragment"
-        android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
+        android:id="@+id/nav_fav"
+        android:name="com.example.vocabbuilder.FavouritesFragment"
+        android:label="@string/menu_favourites"
+        tools:layout="@layout/fragment_favourites" />
 
     <fragment
-        android:id="@+id/nav_slideshow"
-        android:name="com.example.vocabbuilder.ui.slideshow.SlideshowFragment"
-        android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
+        android:id="@+id/nav_progress"
+        android:name="com.example.vocabbuilder.ProgressFragment"
+        android:label="@string/menu_progress"
+        tools:layout="@layout/fragment_progress" />
+
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="com.example.vocabbuilder.ProfileFragment"
+        android:label="@string/menu_profile"
+        tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/nav_settings"
+        android:name="com.example.vocabbuilder.SettingsFragment"
+        android:label="@string/menu_settings"
+        tools:layout="@layout/fragment_settings" />
+
+    <fragment
+        android:id="@+id/nav_about"
+        android:label="@string/menu_about"
+        android:name="com.example.vocabbuilder.AboutFragment"
+        tools:layout="@layout/fragment_about" />
+
+
+
 </navigation>
