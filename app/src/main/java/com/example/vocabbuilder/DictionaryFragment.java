@@ -1,65 +1,229 @@
 package com.example.vocabbuilder;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
 
-///**
-// * A simple {@link Fragment} subclass.
-// * Use the {@link DictionaryFragment#newInstance} factory method to
-// * create an instance of this fragment.
-// */
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.lang.reflect.Array;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+
+
 public class DictionaryFragment extends Fragment {
 
-//    // TODO: Rename parameter arguments, choose names that match
-//    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-//    private static final String ARG_PARAM1 = "param1";
-//    private static final String ARG_PARAM2 = "param2";
-//
-//    // TODO: Rename and change types of parameters
-//    private String mParam1;
-//    private String mParam2;
-//
-//    public DictionaryFragment() {
-//        // Required empty public constructor
-//    }
-//
-//    /**
-//     * Use this factory method to create a new instance of
-//     * this fragment using the provided parameters.
-//     *
-//     * @param param1 Parameter 1.
-//     * @param param2 Parameter 2.
-//     * @return A new instance of fragment DictionaryFragment.
-//     */
-//    // TODO: Rename and change types and number of parameters
- //   public static DictionaryFragment newInstance(String param1, String param2) {
-//        DictionaryFragment fragment = new DictionaryFragment();
-//        Bundle args = new Bundle();
-//        args.putString(ARG_PARAM1, param1);
-//        args.putString(ARG_PARAM2, param2);
-//        fragment.setArguments(args);
-//        return fragment;
-//    }
-//
-//    @Override
-//    public void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        if (getArguments() != null) {
-//            mParam1 = getArguments().getString(ARG_PARAM1);
-//            mParam2 = getArguments().getString(ARG_PARAM2);
-//        }
-//    }
+    Calendar calendar;
+    SimpleDateFormat dateFormat;
+    String date;
+    RecyclerView recyclerView;
+    List<WordDetails> details = new ArrayList<>();
+    Adapter adapter;
+    String api = "r23z9iddrkwv17ayqm4l905rw9xb2so4aujqw17fawmh2dgoi";
+    ImageButton favButton;
+
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
 
-        return inflater.inflate(R.layout.fragment_dictionary, container, false);
+        View view = inflater.inflate(R.layout.fragment_dictionary, container, false);
+        recyclerView = view.findViewById(R.id.recyclerView);
+        calendar = Calendar.getInstance();
+        int currentDay = calendar.get(Calendar.DAY_OF_MONTH);
+        SharedPreferences settings = getActivity().getSharedPreferences("PREFS",0);
+        int lastDay = settings.getInt("day", 0);
+        dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        date = dateFormat.format(calendar.getTime());
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        //details = new ArrayList<>();
+
+//        if(lastDay != currentDay){
+//            SharedPreferences.Editor editor = settings.edit();
+//            editor.putInt("day", currentDay);
+//            editor.commit();
+//            Toast.makeText(getContext(),   " currentdate: " + date, Toast.LENGTH_SHORT).show();
+//            //extractRandomWords();
+//        }
+
+        extractRandomWords();
+        return view;
+    }
+
+    private void extractRandomWords() {
+
+        RequestQueue queue = Volley.newRequestQueue(getContext());
+        String URL ="https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=true&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=4&maxLength=-1&limit=5&api_key=" + api;
+
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, URL, null, new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                Log.i("response", response.toString());
+                Toast.makeText(getContext(), response.toString(), Toast.LENGTH_SHORT).show();
+                for (int i = 0; i < response.length(); i++) {
+
+                    try {
+                        JSONObject randomWords = response.getJSONObject(i);
+                        String val = randomWords.getString("word");
+                        //Log.i("RandomWord", val);
+                        //Toast.makeText(getContext(), val, Toast.LENGTH_SHORT).show();
+                        //randomWordList.add(val);
+                        new Timer().schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                // this code will be executed after 2 seconds
+                                fetchDefination(val);
+                            }
+                        }, 5000);
+                        //fetchDefination(val);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("tag","onErrorMessage:" + error.getMessage());
+                VolleyLog.e("Error: ", error.getMessage());
+            }
+        });
+
+        queue.add(jsonArrayRequest);
+    }
+
+
+
+    private void fetchDefination(String wrd) {
+
+        final String[] def = new String[1];
+
+        RequestQueue queue = Volley.newRequestQueue(getContext());
+        String URL = "https://api.wordnik.com/v4/word.json/" + wrd +"/definitions?limit=5&includeRelated=false&useCanonical=false&includeTags=false&api_key=" + api;
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, URL, null, new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                Log.i("response", response.toString());
+                Toast.makeText(getContext(), "def response:"+response.toString(), Toast.LENGTH_SHORT).show();
+                try {
+                    int i = 0;
+                    while (i < response.length() && def[0] == null) {
+                        JSONObject wordDefination = response.getJSONObject(0);
+                        def[0] = wordDefination.getString("text");
+                        if(def[0] != null){break;}
+                        //Log.i("wordDef", def[0]);
+                        //Toast.makeText(getContext(), "wrd def:" + wrd +"- " + def[0], Toast.LENGTH_SHORT).show();
+                        i++;
+                    }
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            // this code will be executed after 2 seconds
+                            fetchExample(wrd, def[0]);
+                        }
+                    }, 5000);
+                    //fetchExample(wrd, def[0]);
+                    //setDetails(wrd,def[0],"eg");
+                    } catch(JSONException e){
+                        e.printStackTrace();
+                    }
+
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("tag","onErrorMessage:" + error.getMessage());
+                VolleyLog.e("Error: ", error.getMessage());
+            }
+        });
+        jsonArrayRequest.setRetryPolicy(new DefaultRetryPolicy(120000, 5, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        queue.add(jsonArrayRequest);
+    }
+
+    private void fetchExample(String wrd, String def) {
+
+        RequestQueue queue = Volley.newRequestQueue(getContext());
+        String URL = "https://api.wordnik.com/v4/word.json/" + wrd + "/topExample?useCanonical=false&api_key=" + api;
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+
+                Log.i("eg response", response.toString());
+                Toast.makeText(getContext(), "eg response:"+response.toString(), Toast.LENGTH_SHORT).show();
+
+                try {
+                    String ex = response.getString("text");
+                    //Log.i("worEg", ex);
+                    //Toast.makeText(getContext(), "wrd eg:" + wrd +"- " + ex, Toast.LENGTH_SHORT).show();
+                    setDetails(wrd,def,ex);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+        jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(120000, 5, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        queue.add(jsonObjectRequest);
+    }
+
+    private void setDetails(String wrd, String def, String ex) {
+
+        WordDetails wordDetails = new WordDetails();
+        wordDetails.setWord(wrd);
+        wordDetails.setDefination(def);
+        wordDetails.setExamples(ex);
+        wordDetails.setDisplayDate(date);
+        details.add(0,wordDetails);
+        adapter = new Adapter(details);
+        adapter.notifyItemInserted(0);
+        adapter.notifyDataSetChanged();
+        //adapter.updateWordList(details);
+
+        recyclerView.setAdapter(adapter);
+
+
     }
 }
