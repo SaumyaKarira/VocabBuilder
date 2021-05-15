@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,10 +29,20 @@ import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
 
 import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
@@ -53,8 +65,21 @@ public class DictionaryFragment extends Fragment {
     Adapter adapter;
     String api = "r23z9iddrkwv17ayqm4l905rw9xb2so4aujqw17fawmh2dgoi";
     ImageButton favButton;
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
+    DocumentReference documentReference;
+    FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+    DatabaseReference userDatabase;
 
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        String currentUserId = firebaseUser.getUid();
+
+        documentReference = firebaseFirestore.collection("user").document(currentUserId);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -87,13 +112,13 @@ public class DictionaryFragment extends Fragment {
     private void extractRandomWords() {
 
         RequestQueue queue = Volley.newRequestQueue(getContext());
-        String URL ="https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=true&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=4&maxLength=-1&limit=5&api_key=" + api;
+        String URL ="https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=true&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=4&maxLength=-1&limit=1&api_key=" + api;
 
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, URL, null, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
-                Log.i("response", response.toString());
-                Toast.makeText(getContext(), response.toString(), Toast.LENGTH_SHORT).show();
+//                Log.i("response", response.toString());
+//                Toast.makeText(getContext(), response.toString(), Toast.LENGTH_SHORT).show();
                 for (int i = 0; i < response.length(); i++) {
 
                     try {
@@ -108,7 +133,7 @@ public class DictionaryFragment extends Fragment {
                                 // this code will be executed after 2 seconds
                                 fetchDefination(val);
                             }
-                        }, 5000);
+                        }, 2000);
                         //fetchDefination(val);
 
                     } catch (JSONException e) {
@@ -139,8 +164,8 @@ public class DictionaryFragment extends Fragment {
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, URL, null, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
-                Log.i("response", response.toString());
-                Toast.makeText(getContext(), "def response:"+response.toString(), Toast.LENGTH_SHORT).show();
+//                Log.i("response", response.toString());
+//                Toast.makeText(getContext(), "def response:"+response.toString(), Toast.LENGTH_SHORT).show();
                 try {
                     int i = 0;
                     while (i < response.length() && def[0] == null) {
@@ -155,9 +180,9 @@ public class DictionaryFragment extends Fragment {
                         @Override
                         public void run() {
                             // this code will be executed after 2 seconds
-                            fetchExample(wrd, def[0]);
+                            fetchExample(wrd, Jsoup.parse(def[0]).text());
                         }
-                    }, 5000);
+                    }, 2000);
                     //fetchExample(wrd, def[0]);
                     //setDetails(wrd,def[0],"eg");
                     } catch(JSONException e){
@@ -186,14 +211,14 @@ public class DictionaryFragment extends Fragment {
             @Override
             public void onResponse(JSONObject response) {
 
-                Log.i("eg response", response.toString());
-                Toast.makeText(getContext(), "eg response:"+response.toString(), Toast.LENGTH_SHORT).show();
+//                Log.i("eg response", response.toString());
+//                Toast.makeText(getContext(), "eg response:"+response.toString(), Toast.LENGTH_SHORT).show();
 
                 try {
                     String ex = response.getString("text");
                     //Log.i("worEg", ex);
                     //Toast.makeText(getContext(), "wrd eg:" + wrd +"- " + ex, Toast.LENGTH_SHORT).show();
-                    setDetails(wrd,def,ex);
+                    setDetails(wrd,def,Jsoup.parse(ex).text());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -211,18 +236,44 @@ public class DictionaryFragment extends Fragment {
 
     private void setDetails(String wrd, String def, String ex) {
 
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        String currentUserId = firebaseUser.getUid();
+
+        documentReference = firebaseFirestore.collection("user").document(currentUserId);
+        userDatabase = firebaseDatabase.getReference("User Words").child(currentUserId);
+
         WordDetails wordDetails = new WordDetails();
         wordDetails.setWord(wrd);
         wordDetails.setDefination(def);
         wordDetails.setExamples(ex);
         wordDetails.setDisplayDate(date);
-        details.add(0,wordDetails);
-        adapter = new Adapter(details);
-        adapter.notifyItemInserted(0);
-        adapter.notifyDataSetChanged();
+        //details.add(0,wordDetails);
+        //adapter = new Adapter(details);
+        //adapter.notifyItemInserted(0);
+        //adapter.notifyDataSetChanged();
         //adapter.updateWordList(details);
 
-        recyclerView.setAdapter(adapter);
+        String id = userDatabase.push().getKey();
+        userDatabase.child(id).setValue(wordDetails);
+        userDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for(DataSnapshot ds:snapshot.getChildren()){
+                    WordDetails data = ds.getValue(WordDetails.class);
+                    details.add(0,wordDetails);
+                }
+                adapter = new Adapter(details);
+                adapter.notifyItemInserted(0);
+                recyclerView.setAdapter(adapter);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+        //recyclerView.setAdapter(adapter);
 
 
     }

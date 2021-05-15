@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Menu;
+import android.widget.TextView;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -59,6 +60,9 @@ public class MainActivity extends AppCompatActivity{
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
+//        View headerView = navigationView.getHeaderView(0);
+//        TextView navUsername = (TextView) headerView.findViewById(R.id.header_name);
+//        navUsername.setText("Your Text Here");
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
@@ -81,7 +85,7 @@ public class MainActivity extends AppCompatActivity{
                     if (id == R.id.nav_logout){
                         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MainActivity.this);
                         builder.setTitle("LogOut")
-                                .setMessage("Are You Sure You Want To LogOut")
+                                .setMessage("Are You Sure You Want To LogOut?")
                                 .setPositiveButton("No", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {

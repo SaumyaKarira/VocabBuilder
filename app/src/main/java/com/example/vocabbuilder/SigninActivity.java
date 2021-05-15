@@ -22,11 +22,24 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static android.widget.Toast.*;
 
 public class SigninActivity extends AppCompatActivity {
 
@@ -35,6 +48,13 @@ public class SigninActivity extends AppCompatActivity {
     TextView signin;
     FirebaseAuth fAuth;
     ProgressBar progressBar;
+    StorageReference storageReference;
+    FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+    DatabaseReference databaseReference;
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
+    DocumentReference documentReference;
+    AllUsers allUsers;
+    String currentUserId;
 
     GoogleSignInClient mGoogleSignInClient;
     private static int RC_SIGN_IN = 100;
@@ -52,11 +72,17 @@ public class SigninActivity extends AppCompatActivity {
         confirmPassowrd = findViewById(R.id.confirm_password);
         signup = findViewById(R.id.signup_btn);
         signin = findViewById(R.id.signin);
-
-        fAuth = FirebaseAuth.getInstance();
+        allUsers = new AllUsers();
         progressBar = findViewById(R.id.signin_progress_bar);
+        fAuth = FirebaseAuth.getInstance();
+        FirebaseUser firebaseUser = fAuth.getCurrentUser();
+//        currentUserId = firebaseUser.getUid();
+//
+//        documentReference = firebaseFirestore.collection("user").document(currentUserId);
+//        storageReference = FirebaseStorage.getInstance().getReference("Profile Images");
+//        databaseReference = firebaseDatabase.getReference("All User");
 
-        if(fAuth.getCurrentUser() != null) {
+        if(firebaseUser != null) {
             startActivity(new Intent(getApplicationContext(), MainActivity.class));
             finish();
         }
@@ -69,6 +95,16 @@ public class SigninActivity extends AppCompatActivity {
                 String FirstName = firstName.getText().toString();
                 String LastName = lastName.getText().toString();
                 String ConfirmPassword = confirmPassowrd.getText().toString();
+
+                if(TextUtils.isEmpty(FirstName)) {
+                    email.setError("FirstName is required");
+                    return;
+                }
+
+                if(TextUtils.isEmpty(LastName)) {
+                    email.setError("LastName is required");
+                    return;
+                }
 
                 if(TextUtils.isEmpty(Email)) {
                     email.setError("Email is required");
@@ -86,6 +122,8 @@ public class SigninActivity extends AppCompatActivity {
                     confirmPassowrd.setError("Passowrd dosen't match");
                     return;
                 }
+
+
                 progressBar.setVisibility(View.VISIBLE);
 
                 //Register User
@@ -93,11 +131,34 @@ public class SigninActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()){
-                            Toast.makeText(SigninActivity.this, "User Successfully Created", Toast.LENGTH_SHORT).show();
+                            makeText(SigninActivity.this, "User Successfully Created", LENGTH_SHORT).show();
+                            fAuth = FirebaseAuth.getInstance();
+                            FirebaseUser firebaseUser = fAuth.getCurrentUser();
+                            currentUserId = firebaseUser.getUid();
+
+                            documentReference = firebaseFirestore.collection("user").document(currentUserId);
+                            storageReference = FirebaseStorage.getInstance().getReference("Profile");
+                            databaseReference = firebaseDatabase.getReference("All User");
+                            String fullName = FirstName.concat(" ").concat(LastName);
+                            Map<String, String> profile =  new HashMap<>();
+                            profile.put("FullName", fullName);
+                            profile.put("Email", Email);
+                            profile.put("uid", currentUserId);
+                            allUsers.setFullName(fullName);
+                            allUsers.setEmail(Email);
+                            databaseReference.child(currentUserId).setValue(allUsers);
+                            documentReference.set(profile)
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+//                                progressBar.setVisibility(View.INVISIBLE);
+//                                Toast.makeText(SigninActivity.this, "Profile Created", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
                             startActivity(new Intent(getApplicationContext(), MainActivity.class));
                             finish();
                         }else {
-                            Toast.makeText(SigninActivity.this, "Error!!" + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            makeText(SigninActivity.this, "Error!!" + task.getException().getMessage(), LENGTH_SHORT).show();
                             progressBar.setVisibility(View.GONE);
                         }
                     }

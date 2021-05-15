@@ -6,54 +6,77 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".ProfileFragment">
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        android:scrollbarSize="0dp"
+        android:scrollbarThumbVertical="@android:color/transparent">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center">
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="100dp"/>
 
     <androidx.cardview.widget.CardView
         android:layout_width="150dp"
         android:layout_height="150dp"
         app:cardPreventCornerOverlap="false"
-        android:paddingTop="200dp"
-        app:cardCornerRadius="75dp">
+        app:cardElevation="10dp"
+        android:paddingTop="100dp"
+        app:cardCornerRadius="75dp"
+        android:layout_gravity="center">
 
         <ImageView
             android:id="@+id/profile_image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clickable="true"
+            android:background="@drawable/ic_baseline_person_24"
             android:scaleType="fitCenter" />
 
     </androidx.cardview.widget.CardView>
 
-    <EditText
+    <TextView
         android:id="@+id/profile_name"
+        android:paddingTop="50dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Full Name"
+        android:textSize="20sp"
         android:drawableStart="@drawable/ic_baseline_person_24"
         android:drawablePadding="10dp"
+        android:paddingStart="5dp"
         android:maxLines="1"
         android:layout_margin="5dp"/>
 
-        <EditText
+
+        <TextView
             android:id="@+id/profile_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Email"
             android:maxLines="1"
+            android:paddingStart="5dp"
+            android:textSize="20sp"
+            android:paddingTop="10dp"
             android:drawableStart="@drawable/ic_outline_email_24"
+            android:paddingBottom="50dp"
             android:drawablePadding="10dp"
             android:layout_margin="5dp"/>
 
+
         <Button
-            android:id="@+id/save_changes"
-            android:layout_width="400dp"
+            android:id="@+id/edit_profile"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="Save Changes"
+            android:text="Edit Profile"
+            android:layout_gravity="center_horizontal"
             android:background="@drawable/custom_button"
             android:textColor="@color/white"
             android:textAllCaps="true"/>
@@ -62,7 +85,11 @@
             android:id="@+id/profile_progressbar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"/>
+            android:visibility="invisible"
+            android:layout_marginTop="10dp"
+            android:layout_gravity="center_horizontal"/>
 
     </LinearLayout>
+
+    </ScrollView>
 </FrameLayout>
