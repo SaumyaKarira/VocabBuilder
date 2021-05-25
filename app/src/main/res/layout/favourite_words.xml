@@ -101,12 +101,6 @@
             android:textColor="@color/black"
             android:textSize="15sp" />
 
-        <ImageButton
-            android:id="@+id/favbtn"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:background="@drawable/ic_fav_shadow_24"
-            android:layout_gravity="bottom|end"/>
 
     </LinearLayout>
 

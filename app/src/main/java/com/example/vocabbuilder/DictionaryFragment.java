@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,6 +36,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -55,7 +57,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class DictionaryFragment extends Fragment {
+public class DictionaryFragment extends Fragment{
 
     Calendar calendar;
     SimpleDateFormat dateFormat;
@@ -68,8 +70,57 @@ public class DictionaryFragment extends Fragment {
     FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
     DocumentReference documentReference;
     FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-    DatabaseReference userDatabase;
+    DatabaseReference userDatabase, favRef, favWordsRef;
+    ArrayList<String> keys = new ArrayList<>();
+    ProgressBar progressBar;
 
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        progressBar.setVisibility(View.VISIBLE);
+        new Timer().schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                // this code will be executed after 500 mseconds
+                                showData();
+                            }
+                        }, 5000);
+
+    }
+
+    private void showData() {
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                userDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for(DataSnapshot ds:snapshot.getChildren()){
+                            WordDetails data = ds.getValue(WordDetails.class);
+                            details.add(0,data);
+                            String uid = ds.getKey();
+                            keys.add(0,uid);
+//                    Log.i("uid", uid);
+//                    Toast.makeText(getContext(), "uid:"+uid, Toast.LENGTH_SHORT).show();
+                        }
+                        adapter = new Adapter(details, keys);
+                        adapter.notifyItemInserted(0);
+                        recyclerView.setAdapter(adapter);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+                progressBar.setVisibility(View.GONE);
+            }
+        });
+
+    }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -79,6 +130,40 @@ public class DictionaryFragment extends Fragment {
         String currentUserId = firebaseUser.getUid();
 
         documentReference = firebaseFirestore.collection("user").document(currentUserId);
+        userDatabase = firebaseDatabase.getReference("User Words").child(currentUserId);
+        // To check if favourite word is saved or not
+        favRef = firebaseDatabase.getReference("Favourites");
+        //Reference for favourite words
+        favWordsRef = firebaseDatabase.getReference("Favourites List").child(currentUserId);
+
+//        userDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                for(DataSnapshot ds:snapshot.getChildren()){
+//                    WordDetails data = ds.getValue(WordDetails.class);
+//                    details.add(0,data);
+//                    String uid = ds.getKey();
+//                    keys.add(0,uid);
+////                    Log.i("uid", uid);
+////                    Toast.makeText(getContext(), "uid:"+uid, Toast.LENGTH_SHORT).show();
+//                }
+//                adapter = new Adapter(details, keys);
+//                adapter.notifyItemInserted(0);
+//                recyclerView.setAdapter(adapter);
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//
+//            }
+//        });
+    }
+
+    //called before onCreateView
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        extractRandomWords();
+        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -88,6 +173,8 @@ public class DictionaryFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_dictionary, container, false);
         recyclerView = view.findViewById(R.id.recyclerView);
+        favButton = view.findViewById(R.id.favbtn);
+        progressBar = view.findViewById(R.id.dictionary_progress_bar);
         calendar = Calendar.getInstance();
         int currentDay = calendar.get(Calendar.DAY_OF_MONTH);
         SharedPreferences settings = getActivity().getSharedPreferences("PREFS",0);
@@ -95,6 +182,38 @@ public class DictionaryFragment extends Fragment {
         dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         date = dateFormat.format(calendar.getTime());
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        String currentUserId = firebaseUser.getUid();
+
+        documentReference = firebaseFirestore.collection("user").document(currentUserId);
+        userDatabase = firebaseDatabase.getReference("User Words").child(currentUserId);
+
+        favRef = firebaseDatabase.getReference("Favourites");
+        favWordsRef = firebaseDatabase.getReference("Favourites List").child(currentUserId);
+
+//        userDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                for(DataSnapshot ds:snapshot.getChildren()){
+//                    WordDetails data = ds.getValue(WordDetails.class);
+//                    details.add(0,data);
+//                    String uid = ds.getKey();
+//                    keys.add(0,uid);
+//                    Log.i("uid", uid);
+//                    Toast.makeText(getContext(), "uid:"+uid, Toast.LENGTH_SHORT).show();
+//                }
+//                adapter = new Adapter(details, keys);
+//                adapter.notifyItemInserted(0);
+//                recyclerView.setAdapter(adapter);
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//
+//            }
+//        });
+
         //details = new ArrayList<>();
 
 //        if(lastDay != currentDay){
@@ -105,7 +224,7 @@ public class DictionaryFragment extends Fragment {
 //            //extractRandomWords();
 //        }
 
-        extractRandomWords();
+//        extractRandomWords();
         return view;
     }
 
@@ -127,14 +246,14 @@ public class DictionaryFragment extends Fragment {
                         //Log.i("RandomWord", val);
                         //Toast.makeText(getContext(), val, Toast.LENGTH_SHORT).show();
                         //randomWordList.add(val);
-                        new Timer().schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                // this code will be executed after 2 seconds
-                                fetchDefination(val);
-                            }
-                        }, 2000);
-                        //fetchDefination(val);
+//                        new Timer().schedule(new TimerTask() {
+//                            @Override
+//                            public void run() {
+//                                // this code will be executed after 500 mseconds
+//                                fetchDefination(val);
+//                            }
+//                        }, 500);
+                        fetchDefination(val);
 
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -176,14 +295,14 @@ public class DictionaryFragment extends Fragment {
                         //Toast.makeText(getContext(), "wrd def:" + wrd +"- " + def[0], Toast.LENGTH_SHORT).show();
                         i++;
                     }
-                    new Timer().schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            // this code will be executed after 2 seconds
-                            fetchExample(wrd, Jsoup.parse(def[0]).text());
-                        }
-                    }, 2000);
-                    //fetchExample(wrd, def[0]);
+//                    new Timer().schedule(new TimerTask() {
+//                        @Override
+//                        public void run() {
+//                            // this code will be executed after 500 mseconds
+//                            fetchExample(wrd, Jsoup.parse(def[0]).text());
+//                        }
+//                    }, 500);
+                    fetchExample(wrd, Jsoup.parse(def[0]).text());
                     //setDetails(wrd,def[0],"eg");
                     } catch(JSONException e){
                         e.printStackTrace();
@@ -242,39 +361,81 @@ public class DictionaryFragment extends Fragment {
         documentReference = firebaseFirestore.collection("user").document(currentUserId);
         userDatabase = firebaseDatabase.getReference("User Words").child(currentUserId);
 
+        favRef = firebaseDatabase.getReference("Favourites");
+        favWordsRef = firebaseDatabase.getReference("Favourites List").child(currentUserId);
+
         WordDetails wordDetails = new WordDetails();
         wordDetails.setWord(wrd);
         wordDetails.setDefination(def);
         wordDetails.setExamples(ex);
         wordDetails.setDisplayDate(date);
+        details.add(0,wordDetails);
+        String id = userDatabase.push().getKey();
+        userDatabase.child(id).setValue(wordDetails);
+        Toast.makeText(getContext(), "word added in firebase", Toast.LENGTH_SHORT).show();
+
+//        userDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                for(DataSnapshot ds:snapshot.getChildren()){
+//                    WordDetails data = ds.getValue(WordDetails.class);
+//                    details.add(0,data);
+//                }
+//                adapter = new Adapter(details);
+//                adapter.notifyItemInserted(0);
+//                recyclerView.setAdapter(adapter);
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//
+//            }
+//        });
+
+//        final String postKey = userDatabase.getRef().getKey();
+//
+//        favouriteChecker(postKey);
+//        favButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                favouriteChecker = true;
+//                favRef.addValueEventListener(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                        if(favouriteChecker.equals(true)){
+//                            if(snapshot.child(postKey).hasChild(currentUserId)){
+//                                favRef.child(postKey).child(currentUserId).removeValue();
+//                                delete(date);
+//                            }else{
+//                                favRef.child(postKey).child(currentUserId).setValue(true);
+//
+//                                String id = favWordsRef.push().getKey();
+//                                favWordsRef.child(id).setValue(details);
+//                                favouriteChecker = false;
+//                            }
+//
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError error) {
+//
+//                    }
+//                });
+//            }
+//        });
+
         //details.add(0,wordDetails);
         //adapter = new Adapter(details);
         //adapter.notifyItemInserted(0);
         //adapter.notifyDataSetChanged();
         //adapter.updateWordList(details);
 
-        String id = userDatabase.push().getKey();
-        userDatabase.child(id).setValue(wordDetails);
-        userDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for(DataSnapshot ds:snapshot.getChildren()){
-                    WordDetails data = ds.getValue(WordDetails.class);
-                    details.add(0,wordDetails);
-                }
-                adapter = new Adapter(details);
-                adapter.notifyItemInserted(0);
-                recyclerView.setAdapter(adapter);
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
 
         //recyclerView.setAdapter(adapter);
 
 
     }
+
 }
