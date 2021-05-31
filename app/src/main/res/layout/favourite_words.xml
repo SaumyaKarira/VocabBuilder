@@ -31,7 +31,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/word"
+                android:id="@+id/fav_word"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
@@ -47,7 +47,7 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/dateShown"
+                android:id="@+id/fav_dateShown"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
@@ -74,7 +74,7 @@
             android:textSize="15sp" />
 
         <TextView
-            android:id="@+id/defination"
+            android:id="@+id/fav_defination"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
@@ -92,7 +92,7 @@
             android:textSize="15sp" />
 
         <TextView
-            android:id="@+id/examples"
+            android:id="@+id/fav_examples"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Examples"

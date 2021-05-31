@@ -192,27 +192,6 @@ public class DictionaryFragment extends Fragment{
         favRef = firebaseDatabase.getReference("Favourites");
         favWordsRef = firebaseDatabase.getReference("Favourites List").child(currentUserId);
 
-//        userDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                for(DataSnapshot ds:snapshot.getChildren()){
-//                    WordDetails data = ds.getValue(WordDetails.class);
-//                    details.add(0,data);
-//                    String uid = ds.getKey();
-//                    keys.add(0,uid);
-//                    Log.i("uid", uid);
-//                    Toast.makeText(getContext(), "uid:"+uid, Toast.LENGTH_SHORT).show();
-//                }
-//                adapter = new Adapter(details, keys);
-//                adapter.notifyItemInserted(0);
-//                recyclerView.setAdapter(adapter);
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-//        });
 
         //details = new ArrayList<>();
 
@@ -374,56 +353,7 @@ public class DictionaryFragment extends Fragment{
         userDatabase.child(id).setValue(wordDetails);
         Toast.makeText(getContext(), "word added in firebase", Toast.LENGTH_SHORT).show();
 
-//        userDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                for(DataSnapshot ds:snapshot.getChildren()){
-//                    WordDetails data = ds.getValue(WordDetails.class);
-//                    details.add(0,data);
-//                }
-//                adapter = new Adapter(details);
-//                adapter.notifyItemInserted(0);
-//                recyclerView.setAdapter(adapter);
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-//        });
 
-//        final String postKey = userDatabase.getRef().getKey();
-//
-//        favouriteChecker(postKey);
-//        favButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                favouriteChecker = true;
-//                favRef.addValueEventListener(new ValueEventListener() {
-//                    @Override
-//                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                        if(favouriteChecker.equals(true)){
-//                            if(snapshot.child(postKey).hasChild(currentUserId)){
-//                                favRef.child(postKey).child(currentUserId).removeValue();
-//                                delete(date);
-//                            }else{
-//                                favRef.child(postKey).child(currentUserId).setValue(true);
-//
-//                                String id = favWordsRef.push().getKey();
-//                                favWordsRef.child(id).setValue(details);
-//                                favouriteChecker = false;
-//                            }
-//
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onCancelled(@NonNull DatabaseError error) {
-//
-//                    }
-//                });
-//            }
-//        });
 
         //details.add(0,wordDetails);
         //adapter = new Adapter(details);
