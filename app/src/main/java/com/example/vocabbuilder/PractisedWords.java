@@ -1,21 +1,19 @@
 package com.example.vocabbuilder;
 
-import android.graphics.Canvas;
-import android.os.Bundle;
-
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
-import android.view.LayoutInflater;
+import android.content.Intent;
+import android.graphics.Canvas;
+import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
-import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -25,51 +23,59 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
+public class PractisedWords extends AppCompatActivity {
 
-public class FavouritesFragment extends Fragment{
-
-    RecyclerView recyclerView;
-    public static final String TAG = "FavouriteFragment";
-    FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
-    DocumentReference documentReference;
+    TextView calendarDate;
+    ImageButton upButton;
     FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-    DatabaseReference databaseReference, favRef;
-    List<WordDetails> favDetails = new ArrayList<>();
+    DatabaseReference markRef, markWordRef;
+    List<WordDetails> practisedWords = new ArrayList<>();
     FavouriteAdapter favAdapter;
     ArrayList<String> keys = new ArrayList<>();
-
+    RecyclerView recyclerView;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_practised_words);
 
-        View view = inflater.inflate(R.layout.fragment_favourites, container, false);
-        recyclerView = view.findViewById(R.id.favourite_recyclerview);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        calendarDate = findViewById(R.id.calendar_date);
+        upButton = findViewById(R.id.practised_upbtn);
+        recyclerView = findViewById(R.id.practised_recyclerview);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+        upButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
+        Intent incomingIntent = getIntent();
+        String date = incomingIntent.getStringExtra("date");
+        calendarDate.setText(date);
 
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         String currentUserId = firebaseUser.getUid();
-        favRef = firebaseDatabase.getReference("Favourites");
-        databaseReference = firebaseDatabase.getReference("Favourites List").child(currentUserId);
 
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        markRef = firebaseDatabase.getReference("Marked");
+        markWordRef = firebaseDatabase.getReference("Marked Words").child(currentUserId);
+
+        Query query = markWordRef.orderByChild("displayDate").equalTo(date);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for(DataSnapshot ds:snapshot.getChildren()){
                     WordDetails data = ds.getValue(WordDetails.class);
-                    favDetails.add(0,data);
+                    practisedWords.add(0,data);
                     String uid = ds.getKey();
                     keys.add(0,uid);
                 }
-                favAdapter = new FavouriteAdapter(favDetails,keys);
+                favAdapter = new FavouriteAdapter(practisedWords,keys);
                 favAdapter.notifyItemInserted(0);
                 recyclerView.setAdapter(favAdapter);
             }
@@ -79,12 +85,8 @@ public class FavouritesFragment extends Fragment{
 
             }
         });
-
-
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
         itemTouchHelper.attachToRecyclerView(recyclerView);
-
-        return view;
     }
 
     WordDetails wordDeleted = null;
@@ -107,10 +109,10 @@ public class FavouritesFragment extends Fragment{
                 case ItemTouchHelper.RIGHT:
                     FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
                     String currentUserId = firebaseUser.getUid();
-                    wordDeleted = favDetails.get(position);
-                    favRef.child(postKey).child(currentUserId).removeValue();
+                    wordDeleted = practisedWords.get(position);
+                    markRef.child(postKey).child(currentUserId).removeValue();
                     delete(wordDeleted.getDisplayDate());
-                    favDetails.remove(position);
+                    practisedWords.remove(position);
                     favAdapter.notifyItemRemoved(position);
 
 
@@ -118,11 +120,11 @@ public class FavouritesFragment extends Fragment{
                             .setAction("UNDO", new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-                                    favDetails.add(position, wordDeleted);
-                                    favRef.child(postKey).child(currentUserId).setValue(true);
+                                    practisedWords.add(position, wordDeleted);
+                                    markRef.child(postKey).child(currentUserId).setValue(true);
 
-                                    String id = databaseReference.push().getKey();
-                                    databaseReference.child(id).setValue(wordDeleted);
+                                    String id = markWordRef.push().getKey();
+                                    markWordRef.child(id).setValue(wordDeleted);
                                     favAdapter.notifyItemInserted(position);
                                 }
                             }).show();
@@ -133,7 +135,7 @@ public class FavouritesFragment extends Fragment{
         @Override
         public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
             new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-                    .addSwipeRightBackgroundColor(ContextCompat.getColor(getContext(), R.color.red))
+                    .addSwipeRightBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.red))
                     .addSwipeRightActionIcon(R.drawable.ic_baseline_delete_24)
                     .create()
                     .decorate();
@@ -141,7 +143,7 @@ public class FavouritesFragment extends Fragment{
         }
     };
     private void delete(String date) {
-        Query query = databaseReference.orderByChild("displayDate").equalTo(date);
+        Query query = markWordRef.orderByChild("displayDate").equalTo(date);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {

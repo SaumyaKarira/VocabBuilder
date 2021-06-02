@@ -7,6 +7,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -70,8 +71,8 @@ public class DictionaryFragment extends Fragment{
     FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
     DocumentReference documentReference;
     FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-    DatabaseReference userDatabase, favRef, favWordsRef;
-    ArrayList<String> keys = new ArrayList<>();
+    DatabaseReference userDatabase, favRef, favWordsRef, markRef, markWordRef;
+    List<String> keys = new ArrayList<>();
     ProgressBar progressBar;
 
     @Override
@@ -126,37 +127,16 @@ public class DictionaryFragment extends Fragment{
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        String currentUserId = firebaseUser.getUid();
-
-        documentReference = firebaseFirestore.collection("user").document(currentUserId);
-        userDatabase = firebaseDatabase.getReference("User Words").child(currentUserId);
-        // To check if favourite word is saved or not
-        favRef = firebaseDatabase.getReference("Favourites");
-        //Reference for favourite words
-        favWordsRef = firebaseDatabase.getReference("Favourites List").child(currentUserId);
-
-//        userDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                for(DataSnapshot ds:snapshot.getChildren()){
-//                    WordDetails data = ds.getValue(WordDetails.class);
-//                    details.add(0,data);
-//                    String uid = ds.getKey();
-//                    keys.add(0,uid);
-////                    Log.i("uid", uid);
-////                    Toast.makeText(getContext(), "uid:"+uid, Toast.LENGTH_SHORT).show();
-//                }
-//                adapter = new Adapter(details, keys);
-//                adapter.notifyItemInserted(0);
-//                recyclerView.setAdapter(adapter);
-//            }
+//        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+//        String currentUserId = firebaseUser.getUid();
 //
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-//        });
+//        documentReference = firebaseFirestore.collection("user").document(currentUserId);
+//        userDatabase = firebaseDatabase.getReference("User Words").child(currentUserId);
+//        // To check if favourite word is saved or not
+//        favRef = firebaseDatabase.getReference("Favourites");
+//        //Reference for favourite words
+//        favWordsRef = firebaseDatabase.getReference("Favourites List").child(currentUserId);
+
     }
 
     //called before onCreateView
@@ -176,9 +156,9 @@ public class DictionaryFragment extends Fragment{
         favButton = view.findViewById(R.id.favbtn);
         progressBar = view.findViewById(R.id.dictionary_progress_bar);
         calendar = Calendar.getInstance();
-        int currentDay = calendar.get(Calendar.DAY_OF_MONTH);
-        SharedPreferences settings = getActivity().getSharedPreferences("PREFS",0);
-        int lastDay = settings.getInt("day", 0);
+//        int currentDay = calendar.get(Calendar.DAY_OF_MONTH);
+//        SharedPreferences settings = getActivity().getSharedPreferences("PREFS",0);
+//        int lastDay = settings.getInt("day", 0);
         dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         date = dateFormat.format(calendar.getTime());
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -191,6 +171,9 @@ public class DictionaryFragment extends Fragment{
 
         favRef = firebaseDatabase.getReference("Favourites");
         favWordsRef = firebaseDatabase.getReference("Favourites List").child(currentUserId);
+
+        markRef = firebaseDatabase.getReference("Marked");
+        markWordRef = firebaseDatabase.getReference("Marked Words").child(currentUserId);
 
 
         //details = new ArrayList<>();
@@ -206,6 +189,7 @@ public class DictionaryFragment extends Fragment{
 //        extractRandomWords();
         return view;
     }
+
 
     private void extractRandomWords() {
 

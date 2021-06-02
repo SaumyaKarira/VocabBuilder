@@ -33,15 +33,15 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     LayoutInflater inflater;
     List<WordDetails> details;
     FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-    DatabaseReference userDatabase, favRef, favWordsRef;
+    DatabaseReference userDatabase, favRef, favWordsRef, markRef, markWordRef;
     FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
     DocumentReference documentReference;
-    Boolean favouriteChecker = false;
+    Boolean favouriteChecker = false, practisedChecker = false;
     WordDetails wordDetails = new WordDetails();
-    ArrayList<String> keys;
+    List<String> keys;
 
 
-    public Adapter(List<WordDetails> details, ArrayList<String> keys) {
+    public Adapter(List<WordDetails> details, List<String> keys) {
         this.inflater = inflater;
         this.details = details;
         this.keys = keys;
@@ -67,17 +67,20 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         favRef = firebaseDatabase.getReference("Favourites");
         favWordsRef = firebaseDatabase.getReference("Favourites List").child(currentUserId);
 
-        final String postKey = keys.get(holder.getAbsoluteAdapterPosition());
+        markRef = firebaseDatabase.getReference("Marked");
+        markWordRef = firebaseDatabase.getReference("Marked Words").child(currentUserId);
 
-        holder.wordName.setText(details.get(holder.getAbsoluteAdapterPosition()).getWord());
-        holder.wordDefination.setText(details.get(holder.getAbsoluteAdapterPosition()).getDefination());
-        holder.wordExamples.setText(details.get(holder.getAbsoluteAdapterPosition()).getExamples());
-        holder.wordDate.setText(details.get(holder.getAbsoluteAdapterPosition()).getDisplayDate());
+        final String postKey = keys.get(holder.getAbsoluteAdapterPosition());
 
         String wrd = details.get(holder.getAbsoluteAdapterPosition()).getWord();
         String def = details.get(holder.getAbsoluteAdapterPosition()).getDefination();
         String eg = details.get(holder.getAbsoluteAdapterPosition()).getExamples();
         String date = details.get(holder.getAbsoluteAdapterPosition()).getDisplayDate();
+
+        holder.wordName.setText(wrd);
+        holder.wordDefination.setText(def);
+        holder.wordExamples.setText(eg);
+        holder.wordDate.setText(date);
 
         holder.favChecker(postKey);
         holder.favouriteButton.setOnClickListener(new View.OnClickListener() {
@@ -113,10 +116,64 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
                 });
             }
         });
+
+        holder.practisedChecker(postKey);
+        holder.practisedButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                practisedChecker = true;
+                markRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if(practisedChecker.equals(true)){
+                            if(snapshot.child(postKey).hasChild(currentUserId)){
+                                markRef.child(postKey).child(currentUserId).removeValue();
+                                deleteMarked(date);
+                            }else{
+                                markRef.child(postKey).child(currentUserId).setValue(true);
+                                wordDetails.setWord(wrd);
+                                wordDetails.setDefination(def);
+                                wordDetails.setExamples(eg);
+                                wordDetails.setDisplayDate(date);
+
+                                String id = markWordRef.push().getKey();
+                                markWordRef.child(id).setValue(wordDetails);
+                            }
+                            practisedChecker = false;
+
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+            }
+        });
+
     }
 
     private void delete(String date) {
         Query query = favWordsRef.orderByChild("displayDate").equalTo(date);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for(DataSnapshot dataSnapshot : snapshot.getChildren()){
+                    dataSnapshot.getRef().removeValue();
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    private void deleteMarked(String date) {
+        Query query = markWordRef.orderByChild("displayDate").equalTo(date);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -141,8 +198,8 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     public class ViewHolder extends RecyclerView.ViewHolder{
 
         TextView wordName, wordDefination, wordExamples, wordDate;
-        ImageButton favouriteButton;
-        DatabaseReference favouriteItemRef;
+        ImageButton favouriteButton, practisedButton;
+        DatabaseReference favouriteItemRef, markAsPractisedReference;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -152,12 +209,8 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
             wordExamples = itemView.findViewById(R.id.examples);
             wordDate = itemView.findViewById(R.id.dateShown);
             favouriteButton = itemView.findViewById(R.id.favbtn);
-//            favouriteButton.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    int position = getAbsoluteAdapterPosition();
-//                }
-//            });
+            practisedButton = itemView.findViewById(R.id.mark_as_practised);
+
         }
 
         public void favChecker(String postKey) {
@@ -184,15 +237,38 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
             });
         }
 
+        public void practisedChecker(String postKey) {
+            practisedButton = itemView.findViewById(R.id.mark_as_practised);
+            markAsPractisedReference = firebaseDatabase.getReference("Marked");
+
+            FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+            String currentUserId = firebaseUser.getUid();
+
+            markAsPractisedReference.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if(snapshot.child(postKey).hasChild(currentUserId)){
+                        practisedButton.setImageResource(R.drawable.ic_baseline_done_coloured_24);
+                    }else {
+                        practisedButton.setImageResource(R.drawable.ic_baseline_done_shadow_24);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+        }
     }
 
-    public void updateWordList(List<WordDetails> words) {
-        final MyDiffUtilClass diffCallback = new MyDiffUtilClass(details, words);
-        final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
-
-//        this.details.clear();
-//        this.details.addAll(words);
-        details = words;
-        diffResult.dispatchUpdatesTo(this);
-    }
+//    public void updateWordList(List<WordDetails> words) {
+//        final MyDiffUtilClass diffCallback = new MyDiffUtilClass(details, words);
+//        final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
+//
+////        this.details.clear();
+////        this.details.addAll(words);
+//        details = words;
+//        diffResult.dispatchUpdatesTo(this);
+//    }
 }

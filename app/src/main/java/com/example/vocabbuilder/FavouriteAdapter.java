@@ -39,8 +39,6 @@ public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.View
     FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
     DocumentReference documentReference;
     ArrayList<String> keys;
-    WordDetails wordDeleted = new WordDetails();
-//    private OnItemClickListener onItemClickListener;
 
 
 
@@ -57,7 +55,6 @@ public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.View
 
         //View view = inflater.inflate(R.layout.word_list, parent, false);
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.favourite_words, parent,false);
-        //view.setOnClickListener(this);
         return new ViewHolder(view);
     }
 
@@ -87,50 +84,9 @@ public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.View
         WordDetails favWord = favDetails.get(position);
         holder.itemView.setTag(favWord);
 
-//        holder.itemView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//
-//                favRef.child(postKey).child(currentUserId).removeValue();
-//                delete(date);
-//                wordDeleted = favDetails.get(holder.getAbsoluteAdapterPosition());
-//                Snackbar.make(view,wordDeleted.getWord() + " Deleted", Snackbar.LENGTH_LONG)
-//                        .setAction("UNDO", new View.OnClickListener() {
-//                            @Override
-//                            public void onClick(View view) {
-//                                favRef.child(postKey).child(currentUserId).setValue(true);
-//                                wordDetails.setWord(wrd);
-//                                wordDetails.setDefination(def);
-//                                wordDetails.setExamples(eg);
-//                                wordDetails.setDisplayDate(date);
-//                                favDetails.add(position, wordDeleted);
-//                                String id = favWordsRef.push().getKey();
-//                                favWordsRef.child(id).setValue(favDetails);
-//                                //favAdapter.notifyItemInserted(position);
-//                            }
-//                        }).show();
-//            }
-//        });
-
     }
 
-    private void delete(String date) {
-        Query query = favWordsRef.orderByChild("displayDate").equalTo(date);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for(DataSnapshot dataSnapshot : snapshot.getChildren()){
-                    dataSnapshot.getRef().removeValue();
 
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-    }
 
 
 
@@ -139,33 +95,10 @@ public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.View
         return favDetails.size();
     }
 
-//    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
-//        this.onItemClickListener = onItemClickListener;
-//    }
-
-//    @Override
-//    public void onClick(View view) {
-//
-//    }
-
-//    public void onItemRemove(RecyclerView.ViewHolder viewHolder, RecyclerView mRecyclerView) {
-//    }
-//
-//    public interface OnItemClickListener {
-//    }
 
     public class ViewHolder extends RecyclerView.ViewHolder{
 
         TextView wordName, wordDefination, wordExamples, wordDate;
-
-//        private OnItemClickListener mListener;
-//        public interface OnItemClickListener {
-//            void onItemClick(int position);
-//        }
-//
-//        public void setOnItemClickListener(OnItemClickListener listener){
-//            mListener = listener;
-//        }
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -175,17 +108,6 @@ public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.View
             wordExamples = itemView.findViewById(R.id.fav_examples);
             wordDate = itemView.findViewById(R.id.fav_dateShown);
 
-//            itemView.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    if(mListener != null){
-//                        int position = getAbsoluteAdapterPosition();
-//                        if(position != RecyclerView.NO_POSITION){
-//                            mListener.onItemClick(position);
-//                        }
-//                    }
-//                }
-//            });
 
         }
 
