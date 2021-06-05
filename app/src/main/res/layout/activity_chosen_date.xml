@@ -14,7 +14,7 @@
         app:cardBackgroundColor="@color/black">
 
         <ImageButton
-            android:id="@+id/words_upbtn"
+            android:id="@+id/chosen_upbtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/ic_baseline_keyboard_backspace_24"
@@ -28,24 +28,25 @@
             android:textSize="20dp"
             android:layout_gravity="center_vertical|center_horizontal"/>
 
-        <ImageButton
-            android:id="@+id/pick_date"
+        <TextView
+            android:id="@+id/chosen_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/ic_baseline_date_range_24"
+            android:text="Chosen Date"
+            android:textColor="@color/white"
             android:layout_gravity="right|center_vertical"
             android:padding="15dp"/>
 
     </androidx.cardview.widget.CardView>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/words_recyclerview"
+        android:id="@+id/chosen_recyclerview"
         android:layout_margin="2dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
     <ProgressBar
-        android:id="@+id/words_progress_bar"
+        android:id="@+id/chosen_progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"

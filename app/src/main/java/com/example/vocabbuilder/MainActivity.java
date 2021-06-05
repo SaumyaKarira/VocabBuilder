@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Menu;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.TextView;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -31,6 +34,9 @@ import androidx.appcompat.widget.Toolbar;
 public class MainActivity extends AppCompatActivity{
 
     GoogleSignInClient mGoogleSignInClient;
+    ListView listView;
+    ArrayAdapter<String> arrayAdapter;
+    String[] words = {"Hello", "Telephone", "Work"};
 
     private AppBarConfiguration mAppBarConfiguration;
 
@@ -40,6 +46,11 @@ public class MainActivity extends AppCompatActivity{
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        listView = findViewById(R.id.search_list);
+        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,words);
+        listView.setAdapter(arrayAdapter);
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -119,6 +130,33 @@ public class MainActivity extends AppCompatActivity{
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+        MenuItem.OnActionExpandListener onActionExpandListener = new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem menuItem) {
+                return false;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem menuItem) {
+                return false;
+            }
+        };
+        MenuItem menuItem = menu.findItem(R.id.action_serach).setOnActionExpandListener(onActionExpandListener);
+        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setQueryHint("Search Here");
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+
+                arrayAdapter.getFilter().filter(s);
+                return false;
+            }
+        });
         return true;
     }
 

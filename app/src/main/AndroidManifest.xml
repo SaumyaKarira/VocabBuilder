@@ -12,7 +12,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.VocabBuilder">
-        <activity android:name=".PractisedWords"></activity>
+        <activity android:name=".ChosenDateActivity"></activity>
+        <activity android:name=".PractisedWords" />
         <activity android:name=".UpdatePhoto" />
         <activity
             android:name=".ImageActivity"

@@ -52,6 +52,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -64,15 +66,15 @@ public class DictionaryFragment extends Fragment{
     SimpleDateFormat dateFormat;
     String date;
     RecyclerView recyclerView;
-    List<WordDetails> details = new ArrayList<>();
+    List<WordDetails> details;
     Adapter adapter;
     String api = "r23z9iddrkwv17ayqm4l905rw9xb2so4aujqw17fawmh2dgoi";
     ImageButton favButton;
     FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
     DocumentReference documentReference;
     FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-    DatabaseReference userDatabase, favRef, favWordsRef, markRef, markWordRef;
-    List<String> keys = new ArrayList<>();
+    DatabaseReference userDatabase, favRef, favWordsRef, markRef, markWordRef, allWords;
+    List<String> keys;
     ProgressBar progressBar;
 
     @Override
@@ -96,20 +98,26 @@ public class DictionaryFragment extends Fragment{
             @Override
             public void run() {
 
+                details = new ArrayList<>();
+                adapter = new Adapter(details, keys);
+                recyclerView.setAdapter(adapter);
                 userDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         for(DataSnapshot ds:snapshot.getChildren()){
                             WordDetails data = ds.getValue(WordDetails.class);
-                            details.add(0,data);
+                            details.add(data);
+                            Collections.reverse(details);
                             String uid = ds.getKey();
-                            keys.add(0,uid);
+                            keys.add(uid);
+                            Collections.reverse(keys);
 //                    Log.i("uid", uid);
 //                    Toast.makeText(getContext(), "uid:"+uid, Toast.LENGTH_SHORT).show();
                         }
-                        adapter = new Adapter(details, keys);
-                        adapter.notifyItemInserted(0);
-                        recyclerView.setAdapter(adapter);
+                        //adapter = new Adapter(details, keys);
+                        //adapter.notifyItemInserted(0);
+                        adapter.notifyDataSetChanged();
+
                     }
 
                     @Override
@@ -152,6 +160,8 @@ public class DictionaryFragment extends Fragment{
         // Inflate the layout for this fragment
 
         View view = inflater.inflate(R.layout.fragment_dictionary, container, false);
+        keys = new ArrayList<>();
+        details = new ArrayList<>();
         recyclerView = view.findViewById(R.id.recyclerView);
         favButton = view.findViewById(R.id.favbtn);
         progressBar = view.findViewById(R.id.dictionary_progress_bar);
@@ -174,6 +184,8 @@ public class DictionaryFragment extends Fragment{
 
         markRef = firebaseDatabase.getReference("Marked");
         markWordRef = firebaseDatabase.getReference("Marked Words").child(currentUserId);
+
+        allWords = firebaseDatabase.getReference("Words");
 
 
         //details = new ArrayList<>();
@@ -335,7 +347,23 @@ public class DictionaryFragment extends Fragment{
         details.add(0,wordDetails);
         String id = userDatabase.push().getKey();
         userDatabase.child(id).setValue(wordDetails);
-        Toast.makeText(getContext(), "word added in firebase", Toast.LENGTH_SHORT).show();
+
+//        Query query = allWords.orderByChild("displayDate").equalTo(choosenDate);
+//        query.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                if (!snapshot.exists()){
+//                    fetchWordOfDay(buffer,choosenDate);
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//
+//            }
+//        });
+//        allWords.setValue(wrd);
+        //Toast.makeText(getContext(), "word added in firebase", Toast.LENGTH_SHORT).show();
 
 
 

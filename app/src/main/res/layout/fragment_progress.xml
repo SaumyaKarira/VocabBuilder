@@ -3,11 +3,231 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".ProgressFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
     <CalendarView
         android:id="@+id/calendar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/calendar"
+        android:rowCount="2"
+        android:columnCount="2">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="0"
+            android:layout_column="0"
+            android:layout_gravity="fill"
+            android:layout_rowWeight="1"
+            android:layout_columnWeight="1"
+            android:layout_margin="8dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="8dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:layout_gravity="center_horizontal|center_vertical">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxHeight="50dp"
+                    android:maxWidth="50dp"
+                    android:scaleType="fitXY"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/words_done" />
+
+                <TextView
+                    android:id="@+id/total"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Total"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"
+                    android:textAlignment="center"
+                    android:padding="5dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Words Practised"
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    android:textAlignment="center"/>
+
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="0"
+            android:layout_column="1"
+            android:layout_gravity="fill"
+            android:layout_rowWeight="1"
+            android:layout_columnWeight="1"
+            android:layout_margin="8dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="8dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:layout_gravity="center_horizontal|center_vertical">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/week_icon"
+                    android:maxHeight="50dp"
+                    android:maxWidth="50dp"
+                    android:scaleType="fitXY"
+                    android:adjustViewBounds="true"/>
+
+                <TextView
+                    android:id="@+id/weekly_avg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Weekly"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"
+                    android:textAlignment="center"
+                    android:padding="5dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Weekly Average"
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    android:textAlignment="center"/>
+
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="1"
+            android:layout_column="0"
+            android:layout_gravity="fill"
+            android:layout_rowWeight="1"
+            android:layout_columnWeight="1"
+            android:layout_margin="8dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="8dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:layout_gravity="center_horizontal|center_vertical">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/month_icon"
+                    android:maxHeight="50dp"
+                    android:maxWidth="50dp"
+                    android:scaleType="fitXY"
+                    android:adjustViewBounds="true"/>
+
+                <TextView
+                    android:id="@+id/monthly_avg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Monthly"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:textSize="20sp"
+                    android:textAlignment="center"
+                    android:padding="5dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Monthly Average"
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    android:textAlignment="center"/>
+
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="1"
+            android:layout_column="1"
+            android:layout_gravity="fill"
+            android:layout_rowWeight="1"
+            android:layout_columnWeight="1"
+            android:layout_margin="8dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="8dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:layout_gravity="center_horizontal|center_vertical">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/year"
+                    android:maxHeight="50dp"
+                    android:maxWidth="50dp"
+                    android:scaleType="fitXY"
+                    android:adjustViewBounds="true"/>
+
+                <TextView
+                    android:id="@+id/yearly_avg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Yearly"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"
+                    android:textAlignment="center"
+                    android:padding="5dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Yearly Average"
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    android:textAlignment="center"/>
+
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </GridLayout>
+
+    </RelativeLayout>
 
 </FrameLayout>

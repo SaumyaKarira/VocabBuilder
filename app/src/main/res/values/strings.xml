@@ -24,4 +24,5 @@
     <string name="my_profile">My Profile</string>
     <string name="edit">Edit Image</string>
     <string name="delete">Delete Image</string>
+    <string name="search">Search</string>
 </resources>

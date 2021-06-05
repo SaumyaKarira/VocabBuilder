@@ -39,6 +39,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     Boolean favouriteChecker = false, practisedChecker = false;
     WordDetails wordDetails = new WordDetails();
     List<String> keys;
+    String wrd,def,eg, date;
 
 
     public Adapter(List<WordDetails> details, List<String> keys) {
@@ -70,12 +71,22 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         markRef = firebaseDatabase.getReference("Marked");
         markWordRef = firebaseDatabase.getReference("Marked Words").child(currentUserId);
 
-        final String postKey = keys.get(holder.getAbsoluteAdapterPosition());
 
-        String wrd = details.get(holder.getAbsoluteAdapterPosition()).getWord();
-        String def = details.get(holder.getAbsoluteAdapterPosition()).getDefination();
-        String eg = details.get(holder.getAbsoluteAdapterPosition()).getExamples();
-        String date = details.get(holder.getAbsoluteAdapterPosition()).getDisplayDate();
+        //if(position != RecyclerView.NO_POSITION && position < details.size()){
+            final String postKey = keys.get(holder.getAbsoluteAdapterPosition());
+            wrd = details.get(holder.getAbsoluteAdapterPosition()).getWord();
+            def = details.get(holder.getAbsoluteAdapterPosition()).getDefination();
+            eg = details.get(holder.getAbsoluteAdapterPosition()).getExamples();
+            date = details.get(holder.getAbsoluteAdapterPosition()).getDisplayDate();
+
+//            postKey = keys.get(position);
+//            wrd = details.get(position).getWord();
+//            def = details.get(position).getDefination();
+//            eg = details.get(position).getExamples();
+//            date = details.get(position).getDisplayDate();
+        //}
+
+
 
         holder.wordName.setText(wrd);
         holder.wordDefination.setText(def);

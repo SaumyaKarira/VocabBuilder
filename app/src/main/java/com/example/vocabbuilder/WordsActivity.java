@@ -1,14 +1,20 @@
 package com.example.vocabbuilder;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.DatePicker;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 
@@ -44,17 +50,20 @@ import java.util.TimerTask;
 public class WordsActivity extends AppCompatActivity {
 
     RecyclerView recyclerView;
-    ImageButton upButton;
+    ImageButton upButton, pickDate;
     Calendar calendar;
     SimpleDateFormat dateFormat;
     String date,buffer;
     String api = "r23z9iddrkwv17ayqm4l905rw9xb2so4aujqw17fawmh2dgoi";
-    List<WordDetails> details = new ArrayList<>();
+    List<WordDetails> details;
     Adapter adapter;
     FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
     DatabaseReference wordsDatabase;
-    List<String> keys = new ArrayList<>();
+    List<String> keys;
     ProgressBar progressBar;
+    int  day, month,year;
+
+
 
     @Override
     public void onStart() {
@@ -81,6 +90,7 @@ public class WordsActivity extends AppCompatActivity {
                 query.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        details.clear();
                         for (DataSnapshot ds:snapshot.getChildren()){
                             WordDetails data = ds.getValue(WordDetails.class);
                             details.add(data);
@@ -98,20 +108,24 @@ public class WordsActivity extends AppCompatActivity {
 
                     }
                 });
-
+//                FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+//                String currentUserId = firebaseUser.getUid();
+//                wordsDatabase = firebaseDatabase.getReference("Word Of The Day").child(currentUserId);
 //                wordsDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
 //                    @Override
 //                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                        for(DataSnapshot ds:snapshot.getChildren()){
-//                            WordDetails data = ds.getValue(WordDetails.class);
-//                            details.add(0,data);
-//                            String uid = ds.getKey();
-//                            keys.add(0,uid);
-////                    Log.i("uid", uid);
-////                    Toast.makeText(getContext(), "uid:"+uid, Toast.LENGTH_SHORT).show();
+//                        for(DataSnapshot ds : snapshot.getChildren()){
+//                            String fetchedDate = ds.child("displayDate").getValue().toString();
+//                            if(fetchedDate.equals(date)) {
+//                                WordDetails data = ds.getValue(WordDetails.class);
+//                                details.add(data);
+//                                String uid = ds.getKey();
+//                                keys.add(uid);
+//                            }
 //                        }
 //                        adapter = new Adapter(details, keys);
-//                        adapter.notifyItemInserted(0);
+//                        //adapter.notifyItemInserted(0);
+//                        adapter.notifyDataSetChanged();
 //                        recyclerView.setAdapter(adapter);
 //                    }
 //
@@ -120,6 +134,7 @@ public class WordsActivity extends AppCompatActivity {
 //
 //                    }
 //                });
+
                 progressBar.setVisibility(View.GONE);
             }
         });
@@ -131,14 +146,71 @@ public class WordsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_words);
 
+        details = new ArrayList<>();
+        keys = new ArrayList<>();
+
+        calendar = Calendar.getInstance();
+//        dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+//        date = dateFormat.format(calendar.getTime());
+
         progressBar = findViewById(R.id.words_progress_bar);
+        pickDate = findViewById(R.id.pick_date);
+        pickDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                day = calendar.get(Calendar.DATE);
+                month = calendar.get(Calendar.MONTH);
+                year = calendar.get(Calendar.YEAR);
+
+                DatePickerDialog datePickerDialog = new DatePickerDialog(WordsActivity.this, android.R.style.Theme_DeviceDefault_Dialog, new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
+                        i1 = i1+1;
+                        String chosenday = "", chosenmonth = "";
+                        if(i2<9){
+                            chosenday = "0" + i2;
+                        }
+                        else{
+                            chosenday = Integer.toString(i2);
+                        }
+                        if(i1 < 9){
+                            chosenmonth = "0" + i1;
+                        }
+                        else{
+                            chosenmonth = Integer.toString(i1);
+                        }
+                        String choosenDate = chosenday + "/" + chosenmonth + "/" + i;
+                        String buffer = i + "-" + chosenmonth + "-" + choosenDate;
+                        Query query = wordsDatabase.orderByChild("displayDate").equalTo(choosenDate);
+                        query.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                if (!snapshot.exists()){
+                                    fetchWordOfDay(buffer,choosenDate);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
+//                        fetchWordOfDay(buffer,choosenDate);
+                        Intent intent = new Intent(getApplicationContext(), ChosenDateActivity.class);
+                        intent.putExtra("date", choosenDate);
+                        startActivity(intent);
+
+                    }
+                }, year, month, day);
+                datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis()-1000);
+                datePickerDialog.show();
+
+            }
+        });
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         String currentUserId = firebaseUser.getUid();
         wordsDatabase = firebaseDatabase.getReference("Word Of The Day").child(currentUserId);
 
-        calendar = Calendar.getInstance();
-        dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        date = dateFormat.format(calendar.getTime());
 
         upButton = findViewById(R.id.words_upbtn);
         upButton.setOnClickListener(new View.OnClickListener() {
@@ -155,7 +227,11 @@ public class WordsActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!snapshot.exists()){
-                    fetchWordOfDay();
+                    dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    buffer = dateFormat.format(calendar.getTime());
+                    dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                    date = dateFormat.format(calendar.getTime());
+                    fetchWordOfDay(buffer,date);
                 }
             }
 
@@ -168,11 +244,8 @@ public class WordsActivity extends AppCompatActivity {
 
     }
 
-    private void fetchWordOfDay() {
+    private void fetchWordOfDay(String buffer, String date) {
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-        calendar = Calendar.getInstance();
-        dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        buffer = dateFormat.format(calendar.getTime());
 //        StringBuffer buffer = new StringBuffer(date);
 //        buffer.reverse();
         String URL = "https://api.wordnik.com/v4/words.json/wordOfTheDay?date=" + buffer + "&api_key=" + api;
@@ -214,6 +287,16 @@ public class WordsActivity extends AppCompatActivity {
             public void onErrorResponse(VolleyError error) {
                 Log.d("tag","onErrorMessage:" + error.getMessage());
                 VolleyLog.e("Error: ", error.getMessage());
+                android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(WordsActivity.this);
+                builder.setTitle(buffer)
+                        .setMessage("Word of the day for date " + buffer +" will be shown after sometime.")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        });
+                builder.create().show();
             }
         });
 
