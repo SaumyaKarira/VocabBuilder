@@ -76,6 +76,7 @@ public class DictionaryFragment extends Fragment{
     DatabaseReference userDatabase, favRef, favWordsRef, markRef, markWordRef, allWords;
     List<String> keys;
     ProgressBar progressBar;
+    List<Words> searchWords;
 
     @Override
     public void onStart() {
@@ -162,6 +163,7 @@ public class DictionaryFragment extends Fragment{
         View view = inflater.inflate(R.layout.fragment_dictionary, container, false);
         keys = new ArrayList<>();
         details = new ArrayList<>();
+        searchWords = new ArrayList<>();
         recyclerView = view.findViewById(R.id.recyclerView);
         favButton = view.findViewById(R.id.favbtn);
         progressBar = view.findViewById(R.id.dictionary_progress_bar);
@@ -348,21 +350,12 @@ public class DictionaryFragment extends Fragment{
         String id = userDatabase.push().getKey();
         userDatabase.child(id).setValue(wordDetails);
 
-//        Query query = allWords.orderByChild("displayDate").equalTo(choosenDate);
-//        query.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                if (!snapshot.exists()){
-//                    fetchWordOfDay(buffer,choosenDate);
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-//        });
-//        allWords.setValue(wrd);
+        Words words = new Words();
+        words.setWord(wrd);
+        searchWords.add(words);
+        String searchId = allWords.push().getKey();
+        allWords.child(searchId).setValue(words);
+
         //Toast.makeText(getContext(), "word added in firebase", Toast.LENGTH_SHORT).show();
 
 

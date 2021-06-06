@@ -2,14 +2,17 @@ package com.example.vocabbuilder;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Menu;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.SearchView;
+import androidx.appcompat.widget.SearchView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -18,9 +21,15 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import androidx.annotation.NonNull;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.MenuItemCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.navigation.NavController;
@@ -31,12 +40,16 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity{
 
     GoogleSignInClient mGoogleSignInClient;
-    ListView listView;
+    //ListView listView;
     ArrayAdapter<String> arrayAdapter;
-    String[] words = {"Hello", "Telephone", "Work"};
+    ArrayList<String> words;
+    FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+    DatabaseReference allWords;
 
     private AppBarConfiguration mAppBarConfiguration;
 
@@ -47,9 +60,36 @@ public class MainActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        listView = findViewById(R.id.search_list);
-        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,words);
-        listView.setAdapter(arrayAdapter);
+        //listView = findViewById(R.id.search_list);
+//        words = new ArrayList<>();
+//        allWords = firebaseDatabase.getReference("Words");
+//        allWords.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                for(DataSnapshot ds: snapshot.getChildren()){
+//                    String fetchedWord = ds.child("word").getValue(String.class);
+//                    //Toast.makeText(MainActivity.this,fetchedWord,Toast.LENGTH_SHORT).show();
+//                    words.add(fetchedWord);
+//                }
+//                arrayAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1,words);
+//                listView.setAdapter(arrayAdapter);
+//                listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//                    @Override
+//                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+//                        String selection = adapterView.getItemAtPosition(i).toString();
+//                        getWords(selection);
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//
+//            }
+//        });
+
+
+
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -126,34 +166,81 @@ public class MainActivity extends AppCompatActivity{
 
     }
 
+    private void getWords(String selection) {
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
-        MenuItem.OnActionExpandListener onActionExpandListener = new MenuItem.OnActionExpandListener() {
+        MenuItem menuItem = menu.findItem(R.id.action_search);
+//        MenuItem.OnActionExpandListener onActionExpandListener = new MenuItem.OnActionExpandListener() {
+//            @Override
+//            public boolean onMenuItemActionExpand(MenuItem menuItem) {
+//                return false;
+//            }
+//
+//            @Override
+//            public boolean onMenuItemActionCollapse(MenuItem menuItem) {
+//                return false;
+//            }
+//        };
+        //MenuItem menuItem = menu.findItem(R.id.action_search).setOnActionExpandListener(onActionExpandListener);
+
+
+
+        // Get the search menu.
+       // MenuItem menuItem = menu.findItem(R.id.action_serach);
+        // Get SearchView object.
+        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setQueryHint("Search Here");
+        // Get SearchView autocomplete object.
+        final SearchView.SearchAutoComplete searchAutoComplete = (SearchView.SearchAutoComplete)searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+        searchAutoComplete.setBackgroundColor(Color.BLACK);
+        searchAutoComplete.setTextColor(Color.WHITE);
+        searchAutoComplete.setDropDownBackgroundResource(android.R.color.background_light);
+
+        words = new ArrayList<>();
+        allWords = firebaseDatabase.getReference("Words");
+        allWords.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public boolean onMenuItemActionExpand(MenuItem menuItem) {
-                return false;
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for(DataSnapshot ds: snapshot.getChildren()){
+                    String fetchedWord = ds.child("word").getValue(String.class);
+                    //Toast.makeText(MainActivity.this,fetchedWord,Toast.LENGTH_SHORT).show();
+                    words.add(fetchedWord);
+                }
+                arrayAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1,words);
+                searchAutoComplete.setAdapter(arrayAdapter);
+                searchAutoComplete.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        String selection = adapterView.getItemAtPosition(i).toString();
+                        getWords(selection);
+                        searchAutoComplete.setText(selection);
+                    }
+                });
             }
 
             @Override
-            public boolean onMenuItemActionCollapse(MenuItem menuItem) {
-                return false;
+            public void onCancelled(@NonNull DatabaseError error) {
+
             }
-        };
-        MenuItem menuItem = menu.findItem(R.id.action_serach).setOnActionExpandListener(onActionExpandListener);
-        SearchView searchView = (SearchView) menuItem.getActionView();
-        searchView.setQueryHint("Search Here");
+        });
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
+//                AlertDialog alertDialog = new AlertDialog.Builder(ActionBarSearchActivity.this).create();
+//                alertDialog.setMessage("Search keyword is " + query);
+//                alertDialog.show();
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String s) {
 
-                arrayAdapter.getFilter().filter(s);
+                //arrayAdapter.getFilter().filter(s);
                 return false;
             }
         });

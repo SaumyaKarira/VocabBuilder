@@ -43,7 +43,7 @@ public class ChosenDateActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chosen_date);
 
-        progressBar = findViewById(R.id.chosen_progress_bar);
+        //progressBar = findViewById(R.id.chosen_progress_bar);
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         String currentUserId = firebaseUser.getUid();
         wordsDatabase = firebaseDatabase.getReference("Word Of The Day").child(currentUserId);
@@ -62,11 +62,11 @@ public class ChosenDateActivity extends AppCompatActivity {
         String date = incomingIntent.getStringExtra("date");
         chosenDate.setText(date);
 
-        progressBar.setVisibility(View.VISIBLE);
+        //progressBar.setVisibility(View.VISIBLE);
 
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
+//        new Timer().schedule(new TimerTask() {
+//            @Override
+//            public void run() {
                 Query query = wordsDatabase.orderByChild("displayDate").equalTo(date);
                 query.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -88,10 +88,10 @@ public class ChosenDateActivity extends AppCompatActivity {
 
                     }
                 });
-            }
-        }, 3000);
+//            }
+//        }, 1000);
 
 
-        progressBar.setVisibility(View.GONE);
+        //progressBar.setVisibility(View.GONE);
     }
 }

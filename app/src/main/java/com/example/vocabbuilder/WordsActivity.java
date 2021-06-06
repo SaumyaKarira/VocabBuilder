@@ -76,7 +76,7 @@ public class WordsActivity extends AppCompatActivity {
                 // this code will be executed after 500 mseconds
                 showData();
             }
-        }, 3000);
+        }, 2000);
 
     }
 
