@@ -2,15 +2,7 @@ package com.example.vocabbuilder;
 
 public class AllUsers {
 
-    String fullName, email, url, phone;
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
+    String fullName, email, url;
 
     public String getUrl() {
         return url;

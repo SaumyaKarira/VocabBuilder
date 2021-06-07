@@ -92,13 +92,25 @@
         android:drawablePadding="10dp"
         android:maxLines="1"/>
 
+        <TextView
+            android:id="@+id/forgot_password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/forgot_password"
+            android:layout_marginTop="470dp"
+            android:textColor="@color/black"
+            android:textAllCaps="true"
+            android:textStyle="bold"
+            android:layout_alignParentEnd="true"
+            android:contextClickable="true"
+            android:paddingLeft="10dp"/>
     <Button
         android:id="@+id/signin_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Sign In"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="470dp"
+        android:layout_marginTop="540dp"
         android:background="@drawable/custom_button"
         android:textColor="@color/white"
         android:textAllCaps="true"/>
@@ -112,14 +124,14 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:text="Don't have an account?"
-            android:layout_marginTop="540dp"/>
+            android:layout_marginTop="610dp"/>
 
         <TextView
             android:id="@+id/signup"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:text="Sign UP"
-            android:layout_marginTop="540dp"
+            android:layout_marginTop="610dp"
             android:textStyle="bold"
             android:paddingLeft="10dp"
             android:textColor="@color/black"

@@ -61,7 +61,7 @@
                 android:paddingLeft="50dp"/>
 
             <ImageButton
-                android:id="@+id/login_phone"
+                android:id="@+id/signin_phone"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:background="@drawable/ic_baseline_phone_android_24"
@@ -105,23 +105,23 @@
             android:drawablePadding="10dp"
             android:maxLines="1"/>
 
-        <EditText
-            android:id="@+id/signin_phone"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="540dp"
-            android:hint="@string/phone_number"
-            android:inputType="phone"
-            android:layout_centerHorizontal="true"
-            android:drawableStart="@drawable/ic_baseline_phone_24"
-            android:drawablePadding="10dp"
-            android:maxLines="1"/>
+<!--        <EditText-->
+<!--            android:id="@+id/signin_phone"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginTop="540dp"-->
+<!--            android:hint="@string/phone_number"-->
+<!--            android:inputType="phone"-->
+<!--            android:layout_centerHorizontal="true"-->
+<!--            android:drawableStart="@drawable/ic_baseline_phone_24"-->
+<!--            android:drawablePadding="10dp"-->
+<!--            android:maxLines="1"/>-->
 
         <EditText
             android:id="@+id/signin_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="610dp"
+            android:layout_marginTop="540dp"
             android:hint="@string/password"
             android:inputType="textPassword"
             android:layout_centerHorizontal="true"
@@ -133,7 +133,7 @@
             android:id="@+id/confirm_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="680dp"
+            android:layout_marginTop="610dp"
             android:hint="@string/confirm_password"
             android:layout_centerHorizontal="true"
             android:inputType="textPassword"
@@ -148,7 +148,7 @@
             android:layout_height="wrap_content"
             android:text="Sign Up"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="750dp"
+            android:layout_marginTop="680dp"
             android:background="@drawable/custom_button"
             android:textColor="@color/white"
             android:textAllCaps="true"/>
@@ -163,14 +163,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:text="Already have an account?"
-                android:layout_marginTop="820dp"/>
+                android:layout_marginTop="750dp"/>
 
             <TextView
                 android:id="@+id/signin"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:text="Sign IN"
-                android:layout_marginTop="820dp"
+                android:layout_marginTop="750dp"
                 android:textStyle="bold"
                 android:paddingLeft="10dp"
                 android:textColor="@color/black"/>

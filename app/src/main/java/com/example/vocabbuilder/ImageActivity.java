@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -30,6 +31,7 @@ public class ImageActivity extends AppCompatActivity {
     DocumentReference documentReference;
     String url;
     FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
+    ImageButton upButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +41,13 @@ public class ImageActivity extends AppCompatActivity {
         //deleteButton = findViewById(R.id.delete_button);
         //editButton = findViewById(R.id.edit_button);
         profileImage = findViewById(R.id.user_image);
+        upButton = findViewById(R.id.image_upbtn);
+        upButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
 
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         String currentUserId = firebaseUser.getUid();

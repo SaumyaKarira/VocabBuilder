@@ -59,8 +59,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                             profileEmail.setText(emailResult);
 
                         }else {
-                            Intent intent = new Intent(getActivity(),SigninActivity.class);
-                            startActivity(intent);
+//                            Intent intent = new Intent(getActivity(),SigninActivity.class);
+//                            startActivity(intent);
+                            profileName.setText("Full Name");
+                            profileEmail.setText("Email");
                         }
 
                     }

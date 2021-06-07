@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -33,7 +34,7 @@ public class LoginActivity extends AppCompatActivity {
 
     EditText email, password;
     Button signin;
-    TextView signup;
+    TextView signup, forgotPassword;
     FirebaseAuth fAuth;
     ProgressBar progressBar;
     ImageButton loginPhone;
@@ -51,6 +52,14 @@ public class LoginActivity extends AppCompatActivity {
         password = findViewById(R.id.password);
         signin = findViewById(R.id.signin_btn);
         signup = findViewById(R.id.signup);
+        forgotPassword = findViewById(R.id.forgot_password);
+        forgotPassword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getApplicationContext(), ForgotPasswordActivity.class));
+            }
+        });
+
         loginPhone = findViewById(R.id.login_phone);
         loginPhone.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,10 +86,19 @@ public class LoginActivity extends AppCompatActivity {
 
                 if(TextUtils.isEmpty(Email)) {
                     email.setError("Email is required");
+                    email.requestFocus();
                     return;
                 }
+
+                if(!Patterns.EMAIL_ADDRESS.matcher(Email).matches()){
+                    email.setError("Please provide valid email address");
+                    email.requestFocus();
+                    return;
+                }
+
                 if(TextUtils.isEmpty(Password)) {
                     password.setError("Password is required");
+                    password.requestFocus();
                     return;
                 }
 

@@ -8,9 +8,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,7 +45,7 @@ import static android.widget.Toast.*;
 
 public class SigninActivity extends AppCompatActivity {
 
-    EditText firstName, lastName,email, password, confirmPassowrd, phoneNum;
+    EditText firstName, lastName,email, password, confirmPassowrd;
     Button signup;
     TextView signin;
     FirebaseAuth fAuth;
@@ -55,6 +57,7 @@ public class SigninActivity extends AppCompatActivity {
     DocumentReference documentReference;
     AllUsers allUsers;
     String currentUserId;
+    ImageButton phoneAuth;
 
     GoogleSignInClient mGoogleSignInClient;
     private static int RC_SIGN_IN = 100;
@@ -65,10 +68,19 @@ public class SigninActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.signin_page);
 
+        phoneAuth = findViewById(R.id.signin_phone);
+        phoneAuth.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getApplicationContext(), LoginPhoneActivity.class));
+                finish();
+            }
+        });
+
         firstName = findViewById(R.id.first_name);
         lastName = findViewById(R.id.last_name);
         email = findViewById(R.id.signin_email_address);
-        phoneNum = findViewById(R.id.signin_phone);
+        //phoneNum = findViewById(R.id.signin_phone);
         password = findViewById(R.id.signin_password);
         confirmPassowrd = findViewById(R.id.confirm_password);
         signup = findViewById(R.id.signup_btn);
@@ -88,46 +100,60 @@ public class SigninActivity extends AppCompatActivity {
             finish();
         }
 
+
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String Email = email.getText().toString().trim();
-                String Phone = phoneNum.getText().toString().trim();
+                //String Phone = phoneNum.getText().toString().trim();
                 String Password = password.getText().toString();
                 String FirstName = firstName.getText().toString();
                 String LastName = lastName.getText().toString();
                 String ConfirmPassword = confirmPassowrd.getText().toString();
 
                 if(TextUtils.isEmpty(FirstName)) {
-                    email.setError("FirstName is required");
+                    firstName.setError("FirstName is required");
+                    firstName.requestFocus();
                     return;
                 }
 
                 if(TextUtils.isEmpty(LastName)) {
-                    email.setError("LastName is required");
+                    lastName.setError("LastName is required");
+                    lastName.requestFocus();
                     return;
                 }
 
                 if(TextUtils.isEmpty(Email)) {
                     email.setError("Email is required");
+                    email.requestFocus();
                     return;
                 }
 
-                if(TextUtils.isEmpty(Phone)) {
-                    phoneNum.setError("Phone Number is required");
+                if(!Patterns.EMAIL_ADDRESS.matcher(Email).matches()){
+                    email.setError("Please provide valid email address");
+                    email.requestFocus();
                     return;
                 }
+
+//                if(TextUtils.isEmpty(Phone)) {
+//                    phoneNum.setError("Phone Number is required");
+//                    phoneNum.requestFocus();
+//                    return;
+//                }
 
                 if(TextUtils.isEmpty(Password)) {
                     password.setError("Password is required");
+                    password.requestFocus();
                     return;
                 }
                 if(Password.length() < 6) {
                     password.setError("Password must be >=6 characters");
+                    password.requestFocus();
                     return;
                 }
                 if(!TextUtils.equals(ConfirmPassword,Password)){
                     confirmPassowrd.setError("Password doesn't match");
+                    confirmPassowrd.requestFocus();
                     return;
                 }
 
@@ -152,10 +178,10 @@ public class SigninActivity extends AppCompatActivity {
                             profile.put("FullName", fullName);
                             profile.put("Email", Email);
                             profile.put("uid", currentUserId);
-                            profile.put("phone", Phone);
+                            //profile.put("phone", Phone);
                             allUsers.setFullName(fullName);
                             allUsers.setEmail(Email);
-                            allUsers.setPhone(Phone);
+                            //allUsers.setPhone(Phone);
                             databaseReference.child(currentUserId).setValue(allUsers);
                             documentReference.set(profile)
                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
