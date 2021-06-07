@@ -58,10 +58,11 @@ public class WordsActivity extends AppCompatActivity {
     List<WordDetails> details;
     Adapter adapter;
     FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-    DatabaseReference wordsDatabase;
+    DatabaseReference wordsDatabase, allWords;
     List<String> keys;
     ProgressBar progressBar;
     int  day, month,year;
+    List<Words> searchWords;
 
 
 
@@ -210,6 +211,7 @@ public class WordsActivity extends AppCompatActivity {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         String currentUserId = firebaseUser.getUid();
         wordsDatabase = firebaseDatabase.getReference("Word Of The Day").child(currentUserId);
+        allWords = firebaseDatabase.getReference("Words");
 
 
         upButton = findViewById(R.id.words_upbtn);
@@ -275,6 +277,11 @@ public class WordsActivity extends AppCompatActivity {
                     String id = wordsDatabase.push().getKey();
                     wordsDatabase.child(id).setValue(wordDetails);
 
+                    Words words = new Words();
+                    words.setWord(wrd);
+                    searchWords.add(words);
+                    String searchId = allWords.push().getKey();
+                    allWords.child(searchId).setValue(words);
 
                 } catch (JSONException e) {
                     e.printStackTrace();

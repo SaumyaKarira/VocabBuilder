@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,6 +36,7 @@ public class LoginActivity extends AppCompatActivity {
     TextView signup;
     FirebaseAuth fAuth;
     ProgressBar progressBar;
+    ImageButton loginPhone;
 
     GoogleSignInClient mGoogleSignInClient;
     private static int RC_SIGN_IN = 100;
@@ -48,7 +50,15 @@ public class LoginActivity extends AppCompatActivity {
         email = findViewById(R.id.email_address);
         password = findViewById(R.id.password);
         signin = findViewById(R.id.signin_btn);
-        signup =findViewById(R.id.signup);
+        signup = findViewById(R.id.signup);
+        loginPhone = findViewById(R.id.login_phone);
+        loginPhone.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getApplicationContext(), LoginPhoneActivity.class));
+                finish();
+            }
+        });
 
         fAuth = FirebaseAuth.getInstance();
         progressBar = findViewById(R.id.progress_bar);

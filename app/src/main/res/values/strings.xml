@@ -25,4 +25,6 @@
     <string name="edit">Edit Image</string>
     <string name="delete">Delete Image</string>
     <string name="search">Search</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="verification_code">Verification Code</string>
 </resources>

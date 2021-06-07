@@ -40,7 +40,7 @@ public class ProgressFragment extends Fragment {
     TextView totalWords, avg;
     FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
     DatabaseReference markRef, markWordRef;
-    String firstDay, currentDay;
+    String currentDay;
     long difference;
     int count;
     Calendar calendar;
@@ -65,7 +65,7 @@ public class ProgressFragment extends Fragment {
             Log.i("Comments", "First time");
             // first time task
             dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-            firstDay = dateFormat.format(calendar.getTime());
+            final String firstDay = dateFormat.format(calendar.getTime());
             settings.edit().putString("first_day", firstDay).apply();
 
             // record the fact that the app has been started at least once

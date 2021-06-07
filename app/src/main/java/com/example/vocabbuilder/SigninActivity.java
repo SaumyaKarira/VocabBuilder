@@ -43,7 +43,7 @@ import static android.widget.Toast.*;
 
 public class SigninActivity extends AppCompatActivity {
 
-    EditText firstName, lastName,email, password, confirmPassowrd;
+    EditText firstName, lastName,email, password, confirmPassowrd, phoneNum;
     Button signup;
     TextView signin;
     FirebaseAuth fAuth;
@@ -68,6 +68,7 @@ public class SigninActivity extends AppCompatActivity {
         firstName = findViewById(R.id.first_name);
         lastName = findViewById(R.id.last_name);
         email = findViewById(R.id.signin_email_address);
+        phoneNum = findViewById(R.id.signin_phone);
         password = findViewById(R.id.signin_password);
         confirmPassowrd = findViewById(R.id.confirm_password);
         signup = findViewById(R.id.signup_btn);
@@ -91,6 +92,7 @@ public class SigninActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 String Email = email.getText().toString().trim();
+                String Phone = phoneNum.getText().toString().trim();
                 String Password = password.getText().toString();
                 String FirstName = firstName.getText().toString();
                 String LastName = lastName.getText().toString();
@@ -110,6 +112,12 @@ public class SigninActivity extends AppCompatActivity {
                     email.setError("Email is required");
                     return;
                 }
+
+                if(TextUtils.isEmpty(Phone)) {
+                    phoneNum.setError("Phone Number is required");
+                    return;
+                }
+
                 if(TextUtils.isEmpty(Password)) {
                     password.setError("Password is required");
                     return;
@@ -119,7 +127,7 @@ public class SigninActivity extends AppCompatActivity {
                     return;
                 }
                 if(!TextUtils.equals(ConfirmPassword,Password)){
-                    confirmPassowrd.setError("Passowrd dosen't match");
+                    confirmPassowrd.setError("Password doesn't match");
                     return;
                 }
 
@@ -144,8 +152,10 @@ public class SigninActivity extends AppCompatActivity {
                             profile.put("FullName", fullName);
                             profile.put("Email", Email);
                             profile.put("uid", currentUserId);
+                            profile.put("phone", Phone);
                             allUsers.setFullName(fullName);
                             allUsers.setEmail(Email);
+                            allUsers.setPhone(Phone);
                             databaseReference.child(currentUserId).setValue(allUsers);
                             documentReference.set(profile)
                                     .addOnSuccessListener(new OnSuccessListener<Void>() {

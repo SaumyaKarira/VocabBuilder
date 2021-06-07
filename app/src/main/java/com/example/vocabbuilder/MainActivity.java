@@ -166,7 +166,10 @@ public class MainActivity extends AppCompatActivity{
 
     }
 
-    private void getWords(String selection) {
+    private void getDetails(String selection) {
+        Intent intent = new Intent(getApplicationContext(), ChosenWordActivity.class);
+        intent.putExtra("word", selection);
+        startActivity(intent);
     }
 
     @Override
@@ -216,7 +219,7 @@ public class MainActivity extends AppCompatActivity{
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                         String selection = adapterView.getItemAtPosition(i).toString();
-                        getWords(selection);
+                        getDetails(selection);
                         searchAutoComplete.setText(selection);
                     }
                 });
@@ -231,9 +234,7 @@ public class MainActivity extends AppCompatActivity{
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
-//                AlertDialog alertDialog = new AlertDialog.Builder(ActionBarSearchActivity.this).create();
-//                alertDialog.setMessage("Search keyword is " + query);
-//                alertDialog.show();
+                getDetails(s);
                 return false;
             }
 
