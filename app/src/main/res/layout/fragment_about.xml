@@ -29,9 +29,42 @@
             android:paddingBottom="10dp"/>
 
         <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="1. Learn At Your Own Pace"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:paddingBottom="5dp"/>
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/str1"/>
+            android:text="2. Track your Learning Progress"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:paddingBottom="5dp"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="3. See Words Marked As Practised According To Date"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:paddingBottom="5dp"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="4. Learn Word Of The Day"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:paddingBottom="5dp"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="5. Save favourite Words"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:paddingBottom="5dp"/>
+
 
     </LinearLayout>
    </androidx.cardview.widget.CardView>

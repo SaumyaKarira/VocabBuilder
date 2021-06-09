@@ -29,13 +29,4 @@
     <string name="verification_code">Verification Code</string>
     <string name="forgot_password">Forgot Password?</string>
 
-    <string name="str1">
-    <ul>
-        <li><big><p style="color:black">Learn At Your Own Pace</p></big></li>
-        <li><big><p style="color:black">Track your Learning Progress</p></big></li>
-        <li><big><p style="color:black">See Words Marked As Practised According To Date</p></big></li>
-        <li><big><p style="color:black">Learn Word Of The Day</p></big></li>
-        <li><big><p style="color:black">Save favourite Words</p></big></li>
-    </ul>
-    </string>
 </resources>

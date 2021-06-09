@@ -39,34 +39,31 @@ public class ChosenDateActivity extends AppCompatActivity {
     List<String> keys = new ArrayList<>();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chosen_date);
-
-        //progressBar = findViewById(R.id.chosen_progress_bar);
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        String currentUserId = firebaseUser.getUid();
-        wordsDatabase = firebaseDatabase.getReference("Word Of The Day").child(currentUserId);
-        chosenDate = findViewById(R.id.chosen_date);
-        upButton = findViewById(R.id.chosen_upbtn);
-        recyclerView = findViewById(R.id.chosen_recyclerview);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
-        upButton.setOnClickListener(new View.OnClickListener() {
+    protected void onStart() {
+        super.onStart();
+        progressBar.setVisibility(View.VISIBLE);
+        new Timer().schedule(new TimerTask() {
             @Override
-            public void onClick(View view) {
-                finish();
+            public void run() {
+                // this code will be executed after 500 mseconds
+                showData();
             }
-        });
+        }, 5000);
+    }
 
-        Intent incomingIntent = getIntent();
-        String date = incomingIntent.getStringExtra("date");
-        chosenDate.setText(date);
+    private void showData() {
 
-        //progressBar.setVisibility(View.VISIBLE);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
 
-//        new Timer().schedule(new TimerTask() {
-//            @Override
-//            public void run() {
+                Intent incomingIntent = getIntent();
+                String date = incomingIntent.getStringExtra("date");
+                chosenDate.setText(date);
+
+                details = new ArrayList<>();
+                adapter = new Adapter(details, keys);
+                recyclerView.setAdapter(adapter);
                 Query query = wordsDatabase.orderByChild("displayDate").equalTo(date);
                 query.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -88,8 +85,66 @@ public class ChosenDateActivity extends AppCompatActivity {
 
                     }
                 });
+                progressBar.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_chosen_date);
+
+        progressBar = findViewById(R.id.chosen_date_progress_bar);
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        String currentUserId = firebaseUser.getUid();
+        wordsDatabase = firebaseDatabase.getReference("Word Of The Day").child(currentUserId);
+        chosenDate = findViewById(R.id.chosen_date);
+        upButton = findViewById(R.id.chosen_upbtn);
+        recyclerView = findViewById(R.id.chosen_recyclerview);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+        upButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
+
+        Intent incomingIntent = getIntent();
+        String date = incomingIntent.getStringExtra("date");
+        chosenDate.setText(date);
+
+        //progressBar.setVisibility(View.VISIBLE);
+//
+//        new Timer().schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                details = new ArrayList<>();
+//                adapter = new Adapter(details, keys);
+//                recyclerView.setAdapter(adapter);
+//                Query query = wordsDatabase.orderByChild("displayDate").equalTo(date);
+//                query.addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                        for (DataSnapshot ds:snapshot.getChildren()){
+//                            WordDetails data = ds.getValue(WordDetails.class);
+//                            details.add(data);
+//                            String uid = ds.getKey();
+//                            keys.add(uid);
+//                        }
+//                        adapter = new Adapter(details, keys);
+//                        //adapter.notifyItemInserted(0);
+//                        adapter.notifyDataSetChanged();
+//                        recyclerView.setAdapter(adapter);
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError error) {
+//
+//                    }
+//                });
 //            }
-//        }, 1000);
+//        }, 3000);
 
 
         //progressBar.setVisibility(View.GONE);

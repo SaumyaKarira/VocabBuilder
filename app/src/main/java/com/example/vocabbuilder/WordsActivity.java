@@ -92,11 +92,14 @@ public class WordsActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         details.clear();
+                        int i = 0;
                         for (DataSnapshot ds:snapshot.getChildren()){
+                            if(i == 1){break;}
                             WordDetails data = ds.getValue(WordDetails.class);
                             details.add(data);
                             String uid = ds.getKey();
                             keys.add(uid);
+                            i = i+1;
                         }
                         adapter = new Adapter(details, keys);
                         //adapter.notifyItemInserted(0);
@@ -277,6 +280,7 @@ public class WordsActivity extends AppCompatActivity {
                     String id = wordsDatabase.push().getKey();
                     wordsDatabase.child(id).setValue(wordDetails);
 
+                    searchWords = new ArrayList<>();
                     Words words = new Words();
                     words.setWord(wrd);
                     searchWords.add(words);

@@ -3,6 +3,7 @@ package com.example.vocabbuilder;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Patterns;
@@ -70,6 +71,8 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<Void> task) {
                 if(task.isSuccessful()){
                     Toast.makeText(ForgotPasswordActivity.this,"Check Your Email To Reset Your Password", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(getApplicationContext(), LoginActivity.class));
+                    finish();
                 }
                 else{
                     Toast.makeText(ForgotPasswordActivity.this,"Try Again! Something Went Wrong", Toast.LENGTH_SHORT).show();
