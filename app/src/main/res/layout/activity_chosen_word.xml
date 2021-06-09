@@ -20,22 +20,6 @@
             android:background="@drawable/ic_baseline_keyboard_backspace_24"
             android:layout_gravity="left|center_vertical"
             android:padding="15dp"/>
-<!--        <TextView-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:textColor="@color/white"-->
-<!--            android:text="Word Of The Day"-->
-<!--            android:textSize="20dp"-->
-<!--            android:layout_gravity="center_vertical|center_horizontal"/>-->
-
-<!--        <TextView-->
-<!--            android:id="@+id/chosen_date"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="Chosen Date"-->
-<!--            android:textColor="@color/white"-->
-<!--            android:layout_gravity="right|center_vertical"-->
-<!--            android:padding="15dp"/>-->
 
     </androidx.cardview.widget.CardView>
 

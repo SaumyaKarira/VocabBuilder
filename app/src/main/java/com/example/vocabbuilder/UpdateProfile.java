@@ -4,7 +4,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,7 +16,9 @@ import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.Continuation;
@@ -32,100 +38,129 @@ import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.Transaction;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.StorageTask;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
+import com.theartofdev.edmodo.cropper.CropImage;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class UpdateProfile extends AppCompatActivity {
 
     EditText editName;
-    ImageView updatedImage;
+    CircleImageView profileImage;
     String nameResult;
     Button saveChanges;
     FirebaseStorage firebaseStorage = FirebaseStorage.getInstance();
     String currentUserId;
     private final static int PICK_IMAGE = 1;
     Uri imageUri, url;
-    UploadTask uploadTask;
+    private String myUri = "";
+    //UploadTask uploadTask;
+    StorageTask uploadTask;
+    ImageButton upButton;
     StorageReference storageReference;
     FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
     DatabaseReference databaseReference;
     DocumentReference documentReference;
     FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
+    FirebaseAuth firebaseAuth;
+    FirebaseUser firebaseUser;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_update_profile);
-        
 
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle("Please Wait...");
+        progressDialog.setCanceledOnTouchOutside(false);
+
+        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         currentUserId = firebaseUser.getUid();
         documentReference = firebaseFirestore.collection("user").document(currentUserId);
-
         storageReference = firebaseStorage.getReference("Profile");
-
-        editName = findViewById(R.id.update_name);
-        updatedImage = findViewById(R.id.update_image);
-        saveChanges = findViewById(R.id.save_changes);
-
-
-        updatedImage.setOnClickListener(new View.OnClickListener() {
+        upButton = findViewById(R.id.update_profile_upbtn);
+        upButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent();
-                intent.setType("image/*");
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(intent, PICK_IMAGE);
+                finish();
             }
         });
+        editName = findViewById(R.id.update_name);
+        profileImage = findViewById(R.id.update_image);
+        saveChanges = findViewById(R.id.save_changes);
 
         saveChanges.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                updateProfile();
-                UpdateImage();
+                uploadProfileImage();
+                updateName();
+                //restartApp();
+
+                progressDialog.setTitle("Set Your Profile");
+                progressDialog.setMessage("Please Wait, while we are setting up your data your app will restart");
+                progressDialog.show();
+
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        // this code will be executed after 3 seconds
+                        restartApp();
+                    }
+                }, 1000);
             }
         });
-    }
 
-    private String getFileExt(Uri uri){
-        ContentResolver contentResolver = getContentResolver();
-        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
-        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        try{
-            if (requestCode == PICK_IMAGE || requestCode == RESULT_OK || data != null || data.getData() != null){
-                imageUri = data.getData();
-                Picasso.get().load(imageUri).into(updatedImage);
+        profileImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                CropImage.activity().setAspectRatio(1,1).start(UpdateProfile.this);
             }
-        }catch (Exception e){
-            Toast.makeText(this, "Error"+e, Toast.LENGTH_SHORT).show();
-        }
-
+        });
+        
+       getUserinfo();
+        
     }
 
-//    public void chooseImage(View view) {
-//
-//        Intent intent = new Intent();
-//        intent.setType("image/*");
-//        intent.setAction(Intent.ACTION_GET_CONTENT);
-//        startActivityForResult(intent, PICK_IMAGE);
-//
-//    }
+    private void restartApp() {
+//        progressDialog.setTitle("Profile Updation");
+//        progressDialog.setMessage("Please Wait, your app will restart after few seconds");
+//        progressDialog.show();
 
-    //To show previous data on start of activity
-    @Override
-    protected void onStart() {
-        super.onStart();
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // this code will be executed after 3 seconds
+                Intent mStartActivity = new Intent(UpdateProfile.this, MainActivity.class);
+                int mPendingIntentId = 123456;
+                PendingIntent mPendingIntent = PendingIntent.getActivity(UpdateProfile.this, mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
+                AlarmManager mgr = (AlarmManager)UpdateProfile.this.getSystemService(Context.ALARM_SERVICE);
+                mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+                System.exit(0);
+            }
+        }, 3000);
 
+        progressDialog.dismiss();
+    }
+
+
+    private void getUserinfo() {
+        //Toast.makeText(UpdateProfile.this, "IN getUserinfo",Toast.LENGTH_SHORT).show();
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        String currentUserId = firebaseUser.getUid();
+
+        DocumentReference documentReference;
+        FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
+        documentReference = firebaseFirestore.collection("user").document(currentUserId);
         documentReference.get()
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
@@ -135,7 +170,7 @@ public class UpdateProfile extends AppCompatActivity {
                             nameResult = task.getResult().getString("FullName");
                             editName.setText(nameResult);
                             String url = task.getResult().getString("url");
-                            Picasso.get().load(url).into(updatedImage);
+                            Picasso.get().load(url).into(profileImage);
 
                         }else {
                             Toast.makeText(UpdateProfile.this, "No Profile",Toast.LENGTH_SHORT).show();
@@ -145,7 +180,102 @@ public class UpdateProfile extends AppCompatActivity {
                 });
     }
 
-    private void updateProfile() {
+    private String getFileExt(Uri uri){
+        ContentResolver contentResolver = getContentResolver();
+        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
+    }
+
+    private void uploadProfileImage() {
+        progressDialog.setTitle("Set Your Profile");
+        progressDialog.setMessage("Please Wait, while we are setting up your data your app will restart");
+        progressDialog.show();
+
+        if(imageUri != null){
+            final StorageReference fileRef = storageReference.child(System.currentTimeMillis() + "." + getFileExt(imageUri));
+//            final StorageReference fileRef = storageReference
+//                    .child(firebaseAuth.getCurrentUser().getUid() + "." + getFileExt(imageUri));
+            uploadTask = fileRef.putFile(imageUri);
+            uploadTask.continueWithTask(new Continuation() {
+                @Override
+                public Object then(@NonNull Task task) throws Exception {
+                    if(!task.isSuccessful()){
+                        throw task.getException();
+                    }
+                    return fileRef.getDownloadUrl();
+                }
+            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+                @Override
+                public void onComplete(@NonNull Task<Uri> task) {
+                    if(task.isSuccessful()){
+                        Uri downloadurl = (Uri) task.getResult();
+                        myUri = downloadurl.toString();
+
+                        Map<String, Object> profile = new HashMap<>();
+                        profile.put("url", myUri);
+
+                        final DocumentReference sDoc = firebaseFirestore.collection("user").document(currentUserId);
+                        firebaseFirestore.runTransaction(new Transaction.Function<Void>() {
+                            @Nullable
+                            @Override
+                            public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
+                                transaction.update(sDoc, "url", myUri);
+                                return null;
+                            }
+                        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                //Toast.makeText(UpdateProfile.this, "Image Updated",Toast.LENGTH_SHORT).show();
+                                //finish();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(UpdateProfile.this, "Image Updation Failed " + e,Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+                        //firebaseFirestore.collection("user").document(currentUserId).set(profile, SetOptions.merge());
+                        progressDialog.dismiss();
+
+                    }
+
+                }
+            });
+        }
+        else{
+            progressDialog.dismiss();
+            Toast.makeText(UpdateProfile.this, "No Image Selected",Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK && data != null){
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            imageUri = result.getUri();
+            profileImage.setImageURI(imageUri);
+
+
+        }
+        else{
+            Toast.makeText(UpdateProfile.this, "Error! Try Again", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+
+//    @Override
+//    protected void onDestroy() {
+//        super.onDestroy();
+//        progressDialog.dismiss();
+//    }
+
+    private void updateName() {
 
         String fullName = editName.getText().toString();
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -162,66 +292,27 @@ public class UpdateProfile extends AppCompatActivity {
         }).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
-                Toast.makeText(UpdateProfile.this, "Profile Updated",Toast.LENGTH_SHORT).show();
-                finish();
+                //Toast.makeText(UpdateProfile.this, "Name Updated",Toast.LENGTH_SHORT).show();
+
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Toast.makeText(UpdateProfile.this, "Updation Failed",Toast.LENGTH_SHORT).show();
+                Toast.makeText(UpdateProfile.this, "Name Updation Failed " + e,Toast.LENGTH_SHORT).show();
             }
         });
+//                .addOnCompleteListener(new OnCompleteListener<Void>() {
+//            @Override
+//            public void onComplete(@NonNull Task<Void> task) {
+//                finish();
+//                Intent mStartActivity = new Intent(UpdateProfile.this, MainActivity.class);
+//                int mPendingIntentId = 123456;
+//                PendingIntent mPendingIntent = PendingIntent.getActivity(UpdateProfile.this, mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
+//                AlarmManager mgr = (AlarmManager)UpdateProfile.this.getSystemService(Context.ALARM_SERVICE);
+//                mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+//                System.exit(0);
+//            }
+//        });
     }
 
-    private void UpdateImage() {
-        if(imageUri != null){
-
-            final StorageReference reference = storageReference.child(System.currentTimeMillis() + "." + getFileExt(imageUri));
-            uploadTask = reference.putFile(imageUri);
-
-            Task<Uri> uriTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                @Override
-                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                    if(!task.isSuccessful()){
-                        throw  task.getException();
-                    }
-                    return reference.getDownloadUrl();
-                }
-            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
-                @Override
-                public void onComplete(@NonNull Task<Uri> task) {
-                    if(task.isSuccessful()){
-                        Uri downloadUri = task.getResult();
-                        Map<String, Object> profile = new HashMap<>();
-                        profile.put("url", downloadUri.toString());
-
-                        firebaseFirestore.collection("user").document(currentUserId).set(profile, SetOptions.merge());
-
-//                        final DocumentReference sDoc = firebaseFirestore.collection("user").document(currentUserId);
-//
-//                        firebaseFirestore.runTransaction(new Transaction.Function<Void>() {
-//                            @Nullable
-//                            @Override
-//                            public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
-//                                transaction.update(sDoc, "url", downloadUri);
-//                                return null;
-//                            }
-//                        }).addOnSuccessListener(new OnSuccessListener<Void>() {
-//                            @Override
-//                            public void onSuccess(Void aVoid) {
-//                                Toast.makeText(UpdateProfile.this, "Photo Updated",Toast.LENGTH_SHORT).show();
-//                                finish();
-//                            }
-//                        }).addOnFailureListener(new OnFailureListener() {
-//                            @Override
-//                            public void onFailure(@NonNull Exception e) {
-//                                Toast.makeText(UpdateProfile.this, "Updation Failed"+e,Toast.LENGTH_SHORT).show();
-//                            }
-//                        });
-                    }
-                }
-            });
-        }
-
-    }
 }

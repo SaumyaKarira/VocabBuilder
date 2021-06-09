@@ -14,16 +14,30 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import static android.widget.Toast.LENGTH_SHORT;
+import static android.widget.Toast.makeText;
 
 public class LoginPhoneActivity extends AppCompatActivity {
 
@@ -31,6 +45,14 @@ public class LoginPhoneActivity extends AppCompatActivity {
     Button continueButton, submitButton;
     TextView resendOtp;
     EditText phoneNum, otp;
+    StorageReference storageReference;
+    FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+    DatabaseReference databaseReference;
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
+    DocumentReference documentReference;
+    AllUsers allUsers;
+    String currentUserId;
+    FirebaseUser firebaseUser;
 
     //To Resend OTP
     private PhoneAuthProvider.ForceResendingToken forceResendingToken;
@@ -57,6 +79,8 @@ public class LoginPhoneActivity extends AppCompatActivity {
         otpLayout.setVisibility(View.GONE);
 
         firebaseAuth = FirebaseAuth.getInstance();
+        //firebaseUser = firebaseAuth.getCurrentUser();
+
         progressDialog = new ProgressDialog(this);
         progressDialog.setTitle("Please Wait...");
         progressDialog.setCanceledOnTouchOutside(false);
@@ -111,7 +135,7 @@ public class LoginPhoneActivity extends AppCompatActivity {
 
                 String code = otp.getText().toString().trim();
                 if(TextUtils.isEmpty(code)) {
-                    otp.setError("Phone Number is required");
+                    otp.setError("Verification Code is required");
                     return;
                 }
                 else{
@@ -150,20 +174,45 @@ public class LoginPhoneActivity extends AppCompatActivity {
     private void signInWithPhoneCredential(PhoneAuthCredential credential) {
         progressDialog.setMessage("Loggin In");
         firebaseAuth.signInWithCredential(credential)
-                .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
-                    public void onSuccess(AuthResult authResult) {
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            allUsers = new AllUsers();
+                            firebaseAuth = FirebaseAuth.getInstance();
+                            firebaseUser = firebaseAuth.getCurrentUser();
+                            currentUserId = firebaseUser.getUid();
+                            documentReference = firebaseFirestore.collection("user").document(currentUserId);
+                            storageReference = FirebaseStorage.getInstance().getReference("Profile Images");
+                            databaseReference = firebaseDatabase.getReference("All User");
 
-                        progressDialog.dismiss();
-                        //String phone = firebaseAuth.getCurrentUser().getPhoneNumber();
-                        startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                        finish();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
+                            Map<String, String> profile = new HashMap<>();
+                            profile.put("FullName", "Full Name");
+                            profile.put("Email", "Email");
+                            profile.put("uid", currentUserId);
+                            //profile.put("phone", Phone);
+                            allUsers.setFullName("Full Name");
+                            allUsers.setEmail("Email");
+                            //allUsers.setPhone(Phone);
+                            databaseReference.child(currentUserId).setValue(allUsers);
+                            documentReference.set(profile)
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+//                                progressBar.setVisibility(View.INVISIBLE);
+//                                Toast.makeText(SigninActivity.this, "Profile Created", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
 
+                            progressDialog.dismiss();
+                            //String phone = firebaseAuth.getCurrentUser().getPhoneNumber();
+                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                            finish();
+                        }
+                        else {
+                            Toast.makeText(LoginPhoneActivity.this, "Error!!" + task.getException().getMessage(), LENGTH_SHORT).show();
+                            progressDialog.dismiss();
+                        }
                     }
                 });
     }

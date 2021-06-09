@@ -10,6 +10,8 @@ import android.view.Menu;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,15 +19,22 @@ import android.widget.Toast;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.squareup.picasso.Picasso;
 
 import androidx.annotation.NonNull;
 import androidx.core.view.GravityCompat;
@@ -42,6 +51,8 @@ import androidx.appcompat.widget.Toolbar;
 
 import java.util.ArrayList;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class MainActivity extends AppCompatActivity{
 
     GoogleSignInClient mGoogleSignInClient;
@@ -52,6 +63,7 @@ public class MainActivity extends AppCompatActivity{
     DatabaseReference allWords;
 
     private AppBarConfiguration mAppBarConfiguration;
+
 
 
     @Override
@@ -111,8 +123,32 @@ public class MainActivity extends AppCompatActivity{
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
-//        View headerView = navigationView.getHeaderView(0);
-//        TextView navUsername = (TextView) headerView.findViewById(R.id.header_name);
+        View headerView = navigationView.getHeaderView(0);
+        TextView navUsername = (TextView) headerView.findViewById(R.id.header_name);
+        CircleImageView navImage = (CircleImageView) headerView.findViewById(R.id.header_image);
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        String currentUserId = firebaseUser.getUid();
+
+        DocumentReference documentReference;
+        FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
+        documentReference = firebaseFirestore.collection("user").document(currentUserId);
+        documentReference.get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+
+                        if(task.getResult().exists()){
+                            String nameResult = task.getResult().getString("FullName");
+                            navUsername.setText(nameResult);
+                            String url = task.getResult().getString("url");
+                            Picasso.get().load(url).into(navImage);
+
+                        }else {
+                            Toast.makeText(MainActivity.this, "No Profile",Toast.LENGTH_SHORT).show();
+                        }
+
+                    }
+                });
 //        navUsername.setText("Your Text Here");
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.

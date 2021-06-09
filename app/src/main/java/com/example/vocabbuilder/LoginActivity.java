@@ -24,11 +24,22 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -38,6 +49,14 @@ public class LoginActivity extends AppCompatActivity {
     FirebaseAuth fAuth;
     ProgressBar progressBar;
     ImageButton loginPhone;
+    StorageReference storageReference;
+    FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+    DatabaseReference databaseReference;
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
+    DocumentReference documentReference;
+    AllUsers allUsers;
+    //String currentUserId;
+    FirebaseUser firebaseUser;
 
     GoogleSignInClient mGoogleSignInClient;
     private static int RC_SIGN_IN = 100;
@@ -45,8 +64,17 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_page);
+
+        fAuth = FirebaseAuth.getInstance();
+        firebaseUser = fAuth.getCurrentUser();
+
+        if(firebaseUser != null) {
+            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+            finish();
+        }
 
         email = findViewById(R.id.email_address);
         password = findViewById(R.id.password);
@@ -69,13 +97,10 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        fAuth = FirebaseAuth.getInstance();
+        allUsers = new AllUsers();
         progressBar = findViewById(R.id.progress_bar);
 
-        if(fAuth.getCurrentUser() != null) {
-            startActivity(new Intent(getApplicationContext(), MainActivity.class));
-            finish();
-        }
+
 
         signin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -198,6 +223,29 @@ public class LoginActivity extends AppCompatActivity {
                 String personEmail = acct.getEmail();
                 String personId = acct.getId();
                 Uri personPhoto = acct.getPhotoUrl();
+
+                String currentUserId = firebaseUser.getUid();
+                documentReference = firebaseFirestore.collection("user").document(currentUserId);
+                storageReference = FirebaseStorage.getInstance().getReference("Profile Images");
+                databaseReference = firebaseDatabase.getReference("All User");
+
+                Map<String, String> profile =  new HashMap<>();
+                profile.put("FullName", personName);
+                profile.put("Email", personEmail);
+                profile.put("uid", currentUserId);
+                //profile.put("phone", Phone);
+                allUsers.setFullName(personName);
+                allUsers.setEmail(personEmail);
+                //allUsers.setPhone(Phone);
+                databaseReference.child(currentUserId).setValue(allUsers);
+                documentReference.set(profile)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+//                                progressBar.setVisibility(View.INVISIBLE);
+//                                Toast.makeText(SigninActivity.this, "Profile Created", Toast.LENGTH_SHORT).show();
+                            }
+                        });
             }
         } catch (ApiException e) {
             // The ApiException status code indicates the detailed failure reason.

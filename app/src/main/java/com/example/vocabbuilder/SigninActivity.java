@@ -58,6 +58,7 @@ public class SigninActivity extends AppCompatActivity {
     AllUsers allUsers;
     String currentUserId;
     ImageButton phoneAuth;
+    FirebaseUser firebaseUser;
 
     GoogleSignInClient mGoogleSignInClient;
     private static int RC_SIGN_IN = 100;
@@ -67,6 +68,13 @@ public class SigninActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.signin_page);
+
+        fAuth = FirebaseAuth.getInstance();
+        firebaseUser = fAuth.getCurrentUser();
+        if(firebaseUser != null) {
+            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+            finish();
+        }
 
         phoneAuth = findViewById(R.id.signin_phone);
         phoneAuth.setOnClickListener(new View.OnClickListener() {
@@ -87,18 +95,6 @@ public class SigninActivity extends AppCompatActivity {
         signin = findViewById(R.id.signin);
         allUsers = new AllUsers();
         progressBar = findViewById(R.id.signin_progress_bar);
-        fAuth = FirebaseAuth.getInstance();
-        FirebaseUser firebaseUser = fAuth.getCurrentUser();
-//        currentUserId = firebaseUser.getUid();
-//
-//        documentReference = firebaseFirestore.collection("user").document(currentUserId);
-//        storageReference = FirebaseStorage.getInstance().getReference("Profile Images");
-//        databaseReference = firebaseDatabase.getReference("All User");
-
-        if(firebaseUser != null) {
-            startActivity(new Intent(getApplicationContext(), MainActivity.class));
-            finish();
-        }
 
 
         signup.setOnClickListener(new View.OnClickListener() {
@@ -278,6 +274,30 @@ public class SigninActivity extends AppCompatActivity {
                 String personEmail = acct.getEmail();
                 String personId = acct.getId();
                 Uri personPhoto = acct.getPhotoUrl();
+
+                currentUserId = firebaseUser.getUid();
+
+                documentReference = firebaseFirestore.collection("user").document(currentUserId);
+                storageReference = FirebaseStorage.getInstance().getReference("Profile Images");
+                databaseReference = firebaseDatabase.getReference("All User");
+
+                Map<String, String> profile =  new HashMap<>();
+                profile.put("FullName", personName);
+                profile.put("Email", personEmail);
+                profile.put("uid", currentUserId);
+                //profile.put("phone", Phone);
+                allUsers.setFullName(personName);
+                allUsers.setEmail(personEmail);
+                //allUsers.setPhone(Phone);
+                databaseReference.child(currentUserId).setValue(allUsers);
+                documentReference.set(profile)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+//                                progressBar.setVisibility(View.INVISIBLE);
+//                                Toast.makeText(SigninActivity.this, "Profile Created", Toast.LENGTH_SHORT).show();
+                            }
+                        });
             }
 
             // Signed in successfully, show authenticated UI.
